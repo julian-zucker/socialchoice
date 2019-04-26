@@ -123,7 +123,8 @@ fabric.properties
 [Ll]ocal
 [Ss]cripts
 pyvenv.cfg
-.venv
 pip-selfcheck.json
+.venv
+venv
 
 # End of https://www.gitignore.io/api/venv,macos,pycharm
