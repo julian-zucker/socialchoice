@@ -5,6 +5,7 @@ import random
 import networkx as nx
 from flask import Flask, jsonify, make_response, request, render_template, redirect
 
+from src.socialchoice import Election
 from src.viz.beatgraph import write_beatgraph
 
 app = Flask(__name__)
@@ -20,30 +21,31 @@ candidates = [
     "C++",
 ]
 
+pairs = {(x, y) for x in candidates for y in candidates if x != y}
+
+
 @app.route("/")
 def index():
-    seen = (request.cookies.get("seen") or "").split(",")
+    seen_cookie = request.cookies.get("seen")
+    seen_pairs = {tuple(x.split(",")) for x in seen_cookie.split("\n")} if seen_cookie else set()
 
-    c1 = None
-    while not c1:
-        choice = candidates[random.randint(0, len(candidates)-1)]
-        if choice not in seen:
-            c1 = choice
+    if set(seen_pairs) == set(pairs):
+        return render_template("done.html")
+    else:
+        possible_pairs = list(pairs.difference(seen_pairs))
+        c1, c2 = possible_pairs[random.randint(0, len(possible_pairs) - 1)]
 
-    c2 = None
-    while not c2:
-        choice = candidates[random.randint(0, len(candidates)-1)]
-        if choice not in seen and choice != c1:
-            c2 = choice
+        resp = make_response(render_template("index.html", c1=c1, c2=c2, seen=seen_pairs))
+        seen_pairs.add((c1, c2))
+        resp.set_cookie('seen', "\n".join([",".join(pair) for pair in seen_pairs]))
+        return resp
 
-    resp = make_response(render_template("index.html", c1=c1, c2=c2))
-    resp.set_cookie('seen', f"{seen},{c1},{c2}")
-    return resp
 
 @app.route("/vote/<c1>/<c2>/<result>")
 def vote(c1, c2, result):
     votes.append([c1, c2, result])
     return redirect("/")
+
 
 @app.route("/get_votes")
 def get_votes():
@@ -52,41 +54,45 @@ def get_votes():
 
 @app.route("/view_results/")
 def view_results():
-    g = nx.DiGraph()
-    g.add_node("python")
-    g.add_node("java")
-    g.add_node("scala")
-    g.add_node("fortran")
-    g.add_node("cobol")
+    # g = nx.DiGraph()
+    # g.add_node("python")
+    # g.add_node("java")
+    # g.add_node("scala")
+    # g.add_node("fortran")
+    # g.add_node("cobol")
+    #
+    # g.add_edge("scala", "java", margin=60)
+    # g.add_edge("scala", "python", margin=10)
+    # g.add_edge("scala", "cobol", margin=12)
+    # g.add_edge("scala", "fortran", margin=100)
+    #
+    # g.add_edge("python", "java", margin=30)
+    # g.add_edge("python", "cobol", margin=20)
+    # g.add_edge("python", "fortran", margin=80)
+    #
+    # g.add_edge("java", "cobol", margin=80)
+    # g.add_edge("java", "c", margin=23)
+    #
+    # g.add_edge("c", "cobol", margin=80)
+    #
+    # g.add_edge("fortran", "cobol", margin=10)
 
-    g.add_edge("scala", "java", margin=60)
-    g.add_edge("scala", "python", margin=10)
-    g.add_edge("scala", "cobol", margin=12)
-    g.add_edge("scala", "fortran", margin=100)
+    election = Election()
+    election.add_votes(*votes)
+    victory_graph = election.get_victory_graph()
+    rankings = election.get_ranked_pairs_ranking()
 
-    g.add_edge("python", "java", margin=30)
-    g.add_edge("python", "cobol", margin=20)
-    g.add_edge("python", "fortran", margin=80)
+    win_ratios = {x: y for x, y in election.win_ratio()}
+    # win_ratios = {
+    #     "scala": 1,
+    #     "python": .8,
+    #     "java": .6,
+    #     "c": .4,
+    #     "fortran": .2,
+    #     "cobol": .1,
+    # }
 
-    g.add_edge("java", "cobol", margin=80)
-    g.add_edge("java", "c", margin=23)
-
-    g.add_edge("c", "cobol", margin=80)
-
-    g.add_edge("fortran", "cobol", margin=10)
-
-    rankings = ["scala", "python", "java", "c", "fortran", "cobol"]
-
-    win_ratios = {
-        "scala": 1,
-        "python": .8,
-        "java": .6,
-        "c": .4,
-        "fortran": .2,
-        "cobol": .1,
-    }
-
-    image_data = base64.b64encode(write_beatgraph(g, rankings, win_ratios)).decode("utf8")
+    image_data = base64.b64encode(write_beatgraph(victory_graph, rankings, win_ratios)).decode("utf8")
 
     return f"""
     <body><h2>Current Matchups:</h4><img src="data:image/png;base64,{image_data}"/></body>
