@@ -7,16 +7,18 @@ class Election:
 
     def __init__(self, *votes):
         """
-        :param votes: An array ov votes, where a vote is any indexable object of length 3
+        :param votes: An array of votes, where a vote is any indexable object of length 3
                 Each vote looks like this: ["Alice",  "Bob", "won"] which indicates that "Alice" lost to "Bob".
         """
-        assert all(vote == "win" or vote == "loss" or vote == "tie" for vote in votes)
+        assert are_valid_votes(votes)
         self._votes = list(votes)
         self._candidates = get_all_candidates_from_votes(self._votes)
 
     def add_votes(self, *votes) -> None:
+        print(votes)
+        assert are_valid_votes(votes)
         self._votes += votes
-        self._candidates += get_all_candidates_from_votes(votes)
+        self._candidates |= get_all_candidates_from_votes(votes)
 
     def get_votes(self) -> list:
         return self._votes.copy()
@@ -186,4 +188,7 @@ def get_all_candidates_from_votes(votes) -> set:
     """
     :return: All the candidates mentioned in the votes
     """
-    return {vote[0:1] for vote in votes}
+    return {vote[0] for vote in votes} | {vote[1] for vote in votes}
+
+def are_valid_votes(votes) -> bool:
+    return all(vote == "win" or vote == "loss" or vote == "tie" for vote in votes)
