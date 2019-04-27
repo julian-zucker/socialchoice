@@ -6,12 +6,37 @@
     <link href="../static/style.css" rel="stylesheet" type="text/css" media="all">
 </head>
 <body>
-<h1>Pick your favorite of the two languages:</h1>
-<h3><a href="/vote/{{ c1 }}/{{ c2 }}/win">{{ c1 }}</a></h3>
-<h3><a href="/vote/{{ c1 }}/{{ c2 }}/loss">{{ c2 }}</a></h3>
-<h3><a href="/vote/{{ c1 }}/{{ c2 }}/tie">Tie</a></h3>
+<h1>Pick your favorite of the two languages!</h1>
+<div class="row" align="center">
+  <div class="column">
+    <a href="/vote/{{ c1 }}/{{ c2 }}/win">
+    <figure>
+        <img width=250 height=250 src="../static/{{ c1 }}.png"/>
+        <br/>
+        <figcaption>{{ c1 }}</figcaption>
+    </figure>
+    </a>
+  </div>
+  <div class="column">
+    <a href="/vote/{{ c1 }}/{{ c2 }}/tie">
+    <figure>
+        <img width=250 height=250 src="../static/tie.png"/>
+        <br/>
+        <figcaption>Tie/NA</figcaption>
+    </figure>
+    </a>
+  </div>
+  <div class="column">
+    <a href="/vote/{{ c1 }}/{{ c2 }}/loss">
+    <figure>
+        <img width=250 height=250 src="../static/{{ c2 }}.png"/>
+        <br/>
+        <figcaption>{{ c2 }}</figcaption>
+    </figure>
+    </a>
+  </div>
+</div>
 
-so far:
-<pre>{{ seen }}</pre>
+<center>Click <a href="/view_results/">here</a> to view the results so far!</center>
 </body>
 </html>

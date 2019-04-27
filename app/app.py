@@ -10,16 +10,19 @@ app = Flask(__name__)
 
 votes = []
 candidates = [
-    "scala",
-    "python",
-    "rust",
+    "C++",
+    "C",
     "golang",
     "java",
-    "C",
-    "C++",
+    "javascript",
+    "lisp",
+    "python",
+    "racket",
+    "rust",
+    "scala",
 ]
 
-pairs = {frozenset((x, y)) for x in candidates for y in candidates if x != y}
+pairs = {frozenset([x, y]) for x in candidates for y in candidates if x != y}
 
 
 @app.route("/")
@@ -62,7 +65,7 @@ def view_results():
     image_data = base64.b64encode(write_beatgraph(victory_graph, rankings, win_ratios)).decode("utf8")
 
     return f"""
-    <body><h2>Current Matchups:</h4><img src="data:image/png;base64,{image_data}"/></body>
+    <body><h2>Current Matchups:</h2><img src="data:image/png;base64,{image_data}"/></body>
     """
 
 

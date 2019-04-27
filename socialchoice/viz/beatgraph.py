@@ -66,21 +66,21 @@ if __name__ == '__main__':
     g.add_node("fortran")
     g.add_node("cobol")
 
-    g.add_edge("scala", "java", margin=60)
-    g.add_edge("scala", "python", margin=10)
-    g.add_edge("scala", "cobol", margin=12)
-    g.add_edge("scala", "fortran", margin=100)
+    g.add_edge("scala", "java", margin=.60)
+    g.add_edge("scala", "python", margin=.10)
+    g.add_edge("scala", "cobol", margin=.12)
+    g.add_edge("scala", "fortran", margin=.100)
 
-    g.add_edge("python", "java", margin=30)
-    g.add_edge("python", "cobol", margin=20)
-    g.add_edge("python", "fortran", margin=80)
+    g.add_edge("python", "java", margin=.30)
+    g.add_edge("python", "cobol", margin=.20)
+    g.add_edge("python", "fortran", margin=.80)
 
-    g.add_edge("java", "cobol", margin=80)
-    g.add_edge("java", "c", margin=23)
+    g.add_edge("java", "cobol", margin=.80)
+    g.add_edge("java", "c", margin=.23)
 
-    g.add_edge("c", "cobol", margin=80)
+    g.add_edge("c", "cobol", margin=.80)
 
-    g.add_edge("fortran", "cobol", margin=10)
+    g.add_edge("fortran", "cobol", margin=.10)
 
     rankings = ["scala", "python", "java", "c", "fortran", "cobol"]
 
