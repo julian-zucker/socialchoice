@@ -1,4 +1,4 @@
-from src.socialchoice import Election
+from socialchoice import Election
 
 example_votes = [[0, 1, "win"], [3, 2, "loss"], [2, 3, "win"], [0, 3, "tie"], [3, 0, "win"]]
 example_candidates = {0, 1, 2, 3}

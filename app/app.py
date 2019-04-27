@@ -1,12 +1,10 @@
 import base64
-import datetime
 import random
 
-import networkx as nx
 from flask import Flask, jsonify, make_response, request, render_template, redirect
 
-from socialchoice.socialchoice import Election
-# from viz.beatgraph import write_beatgraph
+from socialchoice import Election
+from socialchoice.viz import write_beatgraph
 
 app = Flask(__name__)
 
