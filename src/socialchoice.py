@@ -15,7 +15,6 @@ class Election:
         self._candidates = get_all_candidates_from_votes(self._votes)
 
     def add_votes(self, *votes) -> None:
-        print(votes)
         assert are_valid_votes(votes)
         self._votes += votes
         self._candidates |= get_all_candidates_from_votes(votes)
@@ -190,5 +189,5 @@ def get_all_candidates_from_votes(votes) -> set:
     """
     return {vote[0] for vote in votes} | {vote[1] for vote in votes}
 
-def are_valid_votes(votes) -> bool:
-    return all(vote == "win" or vote == "loss" or vote == "tie" for vote in votes)
+def are_valid_votes(votes: iter) -> bool:
+    return all(vote[2] == "win" or vote[2] == "loss" or vote[2] == "tie" for vote in votes)
