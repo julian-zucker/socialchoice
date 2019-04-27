@@ -53,9 +53,9 @@ def write_beatgraph(victory_graph: nx.DiGraph, rankings: list, win_ratio: dict, 
 
     G.layout(prog='dot')
     if output_filename:
-        G.draw(output_filename)
+        G.draw(output_filename, format="png")
     else:
-        return G.draw(output_filename, format="png")
+        return G.draw(format="png", prog="dot")
 
 
 if __name__ == '__main__':

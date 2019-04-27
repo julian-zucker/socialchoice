@@ -1,7 +1,7 @@
 #!/bin/bash
 
 gcloud functions deploy $1 \
-  --source . \
+  --source .. \
   --entry-point $1 \
   --project sharkhacks \
   --runtime python37 \
