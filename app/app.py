@@ -80,7 +80,7 @@ def view_results():
     victory_graph = election.get_victory_graph()
     rankings = election.get_ranked_pairs_ranking()
 
-    win_ratios = {x: y for x, y in election.win_ratio()}
+    win_ratios = {x: y for x, y in election.get_win_ratio()}
     # win_ratios = {
     #     "scala": 1,
     #     "python": .8,

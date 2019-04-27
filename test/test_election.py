@@ -69,32 +69,16 @@ def test_get_ranked_pairs_ranking():
     assert e_1.get_ranked_pairs_ranking() == [2, 3, 0, 1]
 
 
-def test_copeland():
+def test_get_win_ratio():
     e_empty = Election()
-    assert e_empty.get_ranked_pairs_ranking() == []
+    assert e_empty.get_win_ratio() == []
 
     e_1 = Election(*example_votes)
-    assert e_1.get_ranked_pairs_ranking() == [2, 3, 0, 1]
+    assert e_1.get_win_ratio() == [(2, 1.0), (0, 0.5), (3, 1/3), (1, 0.0)]
 
-
-def test_minimax():
+def test_get_win_tie_ratio():
     e_empty = Election()
-    assert e_empty.get_ranked_pairs_ranking() == []
+    assert e_empty.get_win_tie_ratio() == []
 
     e_1 = Election(*example_votes)
-    assert e_1.get_ranked_pairs_ranking() == [2, 3, 0, 1]
-
-
-def test_win_ratio():
-    e_empty = Election()
-    assert e_empty.get_ranked_pairs_ranking() == []
-
-    e_1 = Election(*example_votes)
-    assert e_1.get_ranked_pairs_ranking() == [2, 3, 0, 1]
-
-def test_win_tie_ratio():
-    e_empty = Election()
-    assert e_empty.get_ranked_pairs_ranking() == []
-
-    e_1 = Election(*example_votes)
-    assert e_1.get_ranked_pairs_ranking() == [2, 3, 0, 1]
+    assert e_1.get_win_tie_ratio() == [(2, 1.0), (0, 2/3), (3, 0.5), (1, 0.0)]

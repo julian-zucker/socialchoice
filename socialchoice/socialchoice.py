@@ -141,15 +141,15 @@ class Election:
         assert networkx.is_directed_acyclic_graph(g)
         return list(networkx.topological_sort(g))
 
-    def copeland(self) -> list:
+    def get_copeland(self) -> list:
         g = self.get_victory_graph()
         return sorted([(n, g.out_degree(n) - g.in_degree(n)) for n in g.nodes], key=lambda x: x[1], reverse=True)
 
-    def minimax(self) -> list:
+    def get_minimax(self) -> list:
         g = self.get_matchup_graph()
         return sorted(g.nodes, key=lambda n: max(g.get_edge_data(u, v)["margin"] for u, v in g.in_edges(n)))
 
-    def win_ratio(self) -> list:
+    def get_win_ratio(self) -> list:
         matchups = self.get_matchups()
 
         wins_and_ties_vs_losses = {}
@@ -165,7 +165,7 @@ class Election:
                   for candidate, x in wins_and_ties_vs_losses.items()]
         return sorted(ratios, key=lambda x: x[1], reverse=True)
 
-    def win_tie_ratio(self) -> list:
+    def get_win_tie_ratio(self) -> list:
         matchups = self.get_matchups()
 
         wins_and_ties_vs_losses = {}
