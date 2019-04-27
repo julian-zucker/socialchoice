@@ -17,5 +17,3 @@ def submit_vote(request_json, conn):
     conn.execute("""
     INSERT INTO votes(candidate1, candidate2, result) VALUES (%s, %s, %s) 
     """, (c1, c2, result))
-
-

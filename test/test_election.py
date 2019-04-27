@@ -3,6 +3,7 @@ from socialchoice import Election
 example_votes = [[0, 1, "win"], [3, 2, "loss"], [2, 3, "win"], [0, 3, "tie"], [3, 0, "win"]]
 example_candidates = {0, 1, 2, 3}
 
+
 def test_add_votes():
     e = Election()
     e.add_votes()
@@ -74,11 +75,12 @@ def test_get_win_ratio():
     assert e_empty.get_win_ratio() == []
 
     e_1 = Election(*example_votes)
-    assert e_1.get_win_ratio() == [(2, 1.0), (0, 0.5), (3, 1/3), (1, 0.0)]
+    assert e_1.get_win_ratio() == [(2, 1.0), (0, 0.5), (3, 1 / 3), (1, 0.0)]
+
 
 def test_get_win_tie_ratio():
     e_empty = Election()
     assert e_empty.get_win_tie_ratio() == []
 
     e_1 = Election(*example_votes)
-    assert e_1.get_win_tie_ratio() == [(2, 1.0), (0, 2/3), (3, 0.5), (1, 0.0)]
+    assert e_1.get_win_tie_ratio() == [(2, 1.0), (0, 2 / 3), (3, 0.5), (1, 0.0)]
