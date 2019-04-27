@@ -19,7 +19,7 @@ candidates = [
     "C++",
 ]
 
-pairs = {frozenset(x, y) for x in candidates for y in candidates if x != y}
+pairs = {frozenset((x, y)) for x in candidates for y in candidates if x != y}
 
 
 @app.route("/")
