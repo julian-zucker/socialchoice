@@ -48,7 +48,7 @@ def write_beatgraph(victory_graph: nx.DiGraph, rankings: list, win_ratio: dict, 
     for u, v in new_graph.edges:
         edge_data = victory_graph.get_edge_data(u, v)
         G.add_edge(u, v, penwidth=math.sqrt(edge_data["margin"] / 4),
-                   xlabel="%.2f" % (edge_data["margin"] / 100),
+                   xlabel="%.2f" % (edge_data["margin"]),
                    labelfloat="false")
 
     G.layout(prog='dot')

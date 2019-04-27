@@ -19,13 +19,13 @@ candidates = [
     "C++",
 ]
 
-pairs = {(x, y) for x in candidates for y in candidates if x != y}
+pairs = {frozenset((x, y)) for x in candidates for y in candidates if x != y}
 
 
 @app.route("/")
 def index():
     seen_cookie = request.cookies.get("seen")
-    seen_pairs = {tuple(x.split(",")) for x in seen_cookie.split("\n")} if seen_cookie else set()
+    seen_pairs = {frozenset(x.split(",")) for x in seen_cookie.split("\n")} if seen_cookie else set()
 
     if set(seen_pairs) == set(pairs):
         return render_template("done.html")
@@ -52,43 +52,12 @@ def get_votes():
 
 @app.route("/view_results/")
 def view_results():
-    # g = nx.DiGraph()
-    # g.add_node("python")
-    # g.add_node("java")
-    # g.add_node("scala")
-    # g.add_node("fortran")
-    # g.add_node("cobol")
-    #
-    # g.add_edge("scala", "java", margin=60)
-    # g.add_edge("scala", "python", margin=10)
-    # g.add_edge("scala", "cobol", margin=12)
-    # g.add_edge("scala", "fortran", margin=100)
-    #
-    # g.add_edge("python", "java", margin=30)
-    # g.add_edge("python", "cobol", margin=20)
-    # g.add_edge("python", "fortran", margin=80)
-    #
-    # g.add_edge("java", "cobol", margin=80)
-    # g.add_edge("java", "c", margin=23)
-    #
-    # g.add_edge("c", "cobol", margin=80)
-    #
-    # g.add_edge("fortran", "cobol", margin=10)
-
     election = Election()
     election.add_votes(*votes)
     victory_graph = election.get_victory_graph()
     rankings = election.get_ranked_pairs_ranking()
 
     win_ratios = {x: y for x, y in election.get_win_ratio()}
-    # win_ratios = {
-    #     "scala": 1,
-    #     "python": .8,
-    #     "java": .6,
-    #     "c": .4,
-    #     "fortran": .2,
-    #     "cobol": .1,
-    # }
 
     image_data = base64.b64encode(write_beatgraph(victory_graph, rankings, win_ratios)).decode("utf8")
 
