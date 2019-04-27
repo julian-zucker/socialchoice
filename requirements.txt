@@ -1,2 +1,4 @@
 networkx
 pygraphviz
+jsonschema
+psycopg2-binary
