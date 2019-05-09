@@ -1,8 +1,8 @@
-from socialchoice import Election
+from socialchoice import Election, PairwiseBallets
 
-example_votes = [[0, 1, "win"], [3, 2, "loss"], [2, 3, "win"], [0, 3, "tie"], [3, 0, "win"]]
+example_votes = PairwiseBallets([[0, 1, "win"], [3, 2, "loss"], [2, 3, "win"], [0, 3, "tie"], [3, 0, "win"]])
 example_candidates = {0, 1, 2, 3}
-empty_election = Election([])
+empty_election = Election(PairwiseBallets([]))
 
 
 def test_get_victory_graph_empty():
@@ -34,22 +34,26 @@ def test_get_matchup_graph():
 
 
 def test_get_matchups():
-    e_empty = Election([])
-    assert e_empty.get_matchups() == {}
+    assert PairwiseBallets([]).get_matchups() == {}
 
-    e_1 = Election(example_votes)
-    assert e_1.get_matchups() == {0: {1: {'wins': 1, 'losses': 0, 'ties': 0},
-                                      2: {'wins': 0, 'losses': 0, 'ties': 0},
-                                      3: {'wins': 0, 'losses': 1, 'ties': 1}},
-                                  1: {0: {'wins': 0, 'losses': 1, 'ties': 0},
-                                      2: {'wins': 0, 'losses': 0, 'ties': 0},
-                                      3: {'wins': 0, 'losses': 0, 'ties': 0}},
-                                  2: {0: {'wins': 0, 'losses': 0, 'ties': 0},
-                                      1: {'wins': 0, 'losses': 0, 'ties': 0},
-                                      3: {'wins': 2, 'losses': 0, 'ties': 0}},
-                                  3: {0: {'wins': 1, 'losses': 0, 'ties': 1},
-                                      1: {'wins': 0, 'losses': 0, 'ties': 0},
-                                      2: {'wins': 0, 'losses': 2, 'ties': 0}}}
+    assert example_votes.get_matchups() == {
+        0: {1: {'wins': 1, 'losses': 0, 'ties': 0},
+            2: {'wins': 0, 'losses': 0, 'ties': 0},
+            3: {'wins': 0, 'losses': 1, 'ties': 1}
+            },
+        1: {0: {'wins': 0, 'losses': 1, 'ties': 0},
+            2: {'wins': 0, 'losses': 0, 'ties': 0},
+            3: {'wins': 0, 'losses': 0, 'ties': 0}
+            },
+        2: {0: {'wins': 0, 'losses': 0, 'ties': 0},
+            1: {'wins': 0, 'losses': 0, 'ties': 0},
+            3: {'wins': 2, 'losses': 0, 'ties': 0}
+            },
+        3: {0: {'wins': 1, 'losses': 0, 'ties': 1},
+            1: {'wins': 0, 'losses': 0, 'ties': 0},
+            2: {'wins': 0, 'losses': 2, 'ties': 0}
+            }
+    }
 
 
 def test_get_ranked_pairs_ranking():

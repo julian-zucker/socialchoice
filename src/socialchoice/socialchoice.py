@@ -1,77 +1,25 @@
 import networkx
 
-
-class Election:
-    """
-    A user adds votes to the election and can retrieve results from the election.
-    """
-
+class PairwiseBallets:
+    """Stores ballets in pairwise form, as in: ["Alice",  "Bob", "win"]"""
     def __init__(self, votes):
         """
         :param votes: An array of votes, where a vote is any indexable object of length 3
-                Each vote looks like this: ["Alice",  "Bob", "won"] which indicates that "Alice" lost to "Bob".
         """
         assert self.__are_valid_votes(votes)
         self._votes = list(votes)
         self._candidates = self.__get_all_candidates_from_votes(self._votes)
 
-    def get_victory_graph(self) -> networkx.DiGraph:
-        """A victory graph is a matchup graph of each candidate, but with only edges for wins. Every out-edge represents
-         a win over another candidate. Two candidates will not have any edge between them if there is a perfect tie by
-         win ratio.
-
-        See `get_matchup_graph` for a description of the attributes on nodes and edges.
-         """
-        matchups = self.get_matchup_graph()
-        edges_to_remove = []
-        for u, v in matchups.edges:
-            margin_u_to_v = matchups.get_edge_data(u, v)["margin"]
-            margin_v_to_u = matchups.get_edge_data(v, u)["margin"]
-
-            # u->v has lower win margin than v->u, keep the "winning edge" with higher win ratio
-            # this will remove both if there is a perfect tie - but that's okay
-            if margin_u_to_v <= margin_v_to_u:
-                edges_to_remove.append((u, v))
-
-        matchups.remove_edges_from(edges_to_remove)
-        return matchups
-
-    def get_matchup_graph(self) -> networkx.DiGraph:
-        """A matchup graph is a fully-connected graph, with each out-edge corresponding to a matchup and each in-edge
-        corresponding to the same matchup, but with wins and losses flipped. An edge `(a, b)` from a to b will have
-        `wins` corresponding to the number of wins `a` has over `b`, while the edge `(b, a)` will have `wins`
-        corresponding to the number of wins `b` has over `a`.
-
-        Every edge has the attributes `wins` (described above), `losses`, `ties`, and `margin`. `losses` and `ties` are
-        self explanatory, simply the number of losses or ties between the two candidates. `margin` is the ratio of
-        wins to overall votes.
+    @staticmethod
+    def __get_all_candidates_from_votes(votes) -> set:
         """
-        matchups = self.get_matchups()
-        ids = matchups.keys()
+        :return: All the candidates mentioned in the votes
+        """
+        return {vote[0] for vote in votes} | {vote[1] for vote in votes}
 
-        g = networkx.DiGraph()
-        g.add_nodes_from(ids)
-        for candidate1 in matchups:
-            for candidate2 in matchups[candidate1]:
-                candidate1to2 = matchups[candidate1][candidate2]
-                total_votes_candidate1to2 = sum(candidate1to2.values())
-                if total_votes_candidate1to2 != 0:
-                    g.add_edge(candidate1, candidate2,
-                               wins=candidate1to2["wins"],
-                               losses=candidate1to2["losses"],
-                               ties=candidate1to2["ties"],
-                               margin=candidate1to2["wins"] / total_votes_candidate1to2)
-
-                candidate2to1 = matchups[candidate2][candidate1]
-                total_votes_candidate2to1 = sum(candidate2to1.values())
-                if total_votes_candidate2to1 != 0:
-                    g.add_edge(candidate2, candidate1,
-                               wins=candidate2to1["wins"],
-                               losses=candidate2to1["losses"],
-                               ties=candidate2to1["ties"],
-                               margin=candidate2to1["wins"] / total_votes_candidate2to1)
-
-        return g
+    @staticmethod
+    def __are_valid_votes(votes: iter) -> bool:
+        return all(len(vote) == 3 and vote[2] in {"win", "loss", "tie"} for vote in votes)
 
     def get_matchups(self) -> dict:
         """This matchup shows the number of wins and losses each candidate has against each other.
@@ -117,6 +65,70 @@ class Election:
 
         return matchups
 
+
+class Election:
+    def __init__(self, ballets):
+        self._matchups = ballets.get_matchups()
+
+    def get_victory_graph(self) -> networkx.DiGraph:
+        """A victory graph is a matchup graph of each candidate, but with only edges for wins. Every out-edge represents
+         a win over another candidate. Two candidates will not have any edge between them if there is a perfect tie by
+         win ratio.
+
+        See `get_matchup_graph` for a description of the attributes on nodes and edges.
+         """
+        matchups = self.get_matchup_graph()
+        edges_to_remove = []
+        for u, v in matchups.edges:
+            margin_u_to_v = matchups.get_edge_data(u, v)["margin"]
+            margin_v_to_u = matchups.get_edge_data(v, u)["margin"]
+
+            # u->v has lower win margin than v->u, keep the "winning edge" with higher win ratio
+            # this will remove both if there is a perfect tie - but that's okay
+            if margin_u_to_v <= margin_v_to_u:
+                edges_to_remove.append((u, v))
+
+        matchups.remove_edges_from(edges_to_remove)
+        return matchups
+
+    def get_matchup_graph(self) -> networkx.DiGraph:
+        """A matchup graph is a fully-connected graph, with each out-edge corresponding to a matchup and each in-edge
+        corresponding to the same matchup, but with wins and losses flipped. An edge `(a, b)` from a to b will have
+        `wins` corresponding to the number of wins `a` has over `b`, while the edge `(b, a)` will have `wins`
+        corresponding to the number of wins `b` has over `a`.
+
+        Every edge has the attributes `wins` (described above), `losses`, `ties`, and `margin`. `losses` and `ties` are
+        self explanatory, simply the number of losses or ties between the two candidates. `margin` is the ratio of
+        wins to overall votes.
+        """
+        matchups = self._matchups
+        ids = matchups.keys()
+
+        g = networkx.DiGraph()
+        g.add_nodes_from(ids)
+        for candidate1 in matchups:
+            for candidate2 in matchups[candidate1]:
+                candidate1to2 = matchups[candidate1][candidate2]
+                total_votes_candidate1to2 = sum(candidate1to2.values())
+                if total_votes_candidate1to2 != 0:
+                    g.add_edge(candidate1, candidate2,
+                               wins=candidate1to2["wins"],
+                               losses=candidate1to2["losses"],
+                               ties=candidate1to2["ties"],
+                               margin=candidate1to2["wins"] / total_votes_candidate1to2)
+
+                candidate2to1 = matchups[candidate2][candidate1]
+                total_votes_candidate2to1 = sum(candidate2to1.values())
+                if total_votes_candidate2to1 != 0:
+                    g.add_edge(candidate2, candidate1,
+                               wins=candidate2to1["wins"],
+                               losses=candidate2to1["losses"],
+                               ties=candidate2to1["ties"],
+                               margin=candidate2to1["wins"] / total_votes_candidate2to1)
+
+        return g
+
+
     ####################################################################################################################
     # Ranking Methods
 
@@ -149,7 +161,7 @@ class Election:
         return sorted(g.nodes, key=lambda n: max(g.get_edge_data(u, v)["margin"] for u, v in g.in_edges(n)))
 
     def ranking_by_win_ratio(self) -> list:
-        matchups = self.get_matchups()
+        matchups = self._matchups
 
         wins_and_ties_vs_losses = {}
         for candidate in matchups:
@@ -165,7 +177,7 @@ class Election:
         return sorted(ratios, key=lambda x: x[1], reverse=True)
 
     def ranking_by_win_tie_ratio(self) -> list:
-        matchups = self.get_matchups()
+        matchups = self._matchups
 
         wins_and_ties_vs_losses = {}
         for candidate in matchups:
@@ -180,15 +192,3 @@ class Election:
         ratios = [(candidate, (x[0] / ((x[0] + x[1]) or float("inf"))))
                   for candidate, x in wins_and_ties_vs_losses.items()]
         return sorted(ratios, key=lambda x: x[1], reverse=True)
-
-
-    @staticmethod
-    def __get_all_candidates_from_votes(votes) -> set:
-        """
-        :return: All the candidates mentioned in the votes
-        """
-        return {vote[0] for vote in votes} | {vote[1] for vote in votes}
-
-    @staticmethod
-    def __are_valid_votes(votes: iter) -> bool:
-        return all(len(vote) == 3 and vote[2] in {"win", "loss", "tie"} for vote in votes)
