@@ -1,6 +1,1 @@
-networkx
-pygraphviz
-jsonschema
-psycopg2-binary
-socialchoice
-flask
+pytest

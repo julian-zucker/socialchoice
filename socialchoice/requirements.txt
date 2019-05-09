@@ -1,4 +1,0 @@
-# GCF requirements
-psycopg2-binary
-jsonschema
-flask

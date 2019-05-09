@@ -2,7 +2,7 @@ import networkx
 
 class Election:
     """
-    A user adds votes to the election and can retrieve results from the election
+    A user adds votes to the election and can retrieve results from the election.
     """
 
     def __init__(self, *votes):
@@ -190,4 +190,4 @@ def get_all_candidates_from_votes(votes) -> set:
     return {vote[0] for vote in votes} | {vote[1] for vote in votes}
 
 def are_valid_votes(votes: iter) -> bool:
-    return all(vote[2] == "win" or vote[2] == "loss" or vote[2] == "tie" for vote in votes)
+    return all(vote[2] in {"win", "loss", "tie"} for vote in votes)
