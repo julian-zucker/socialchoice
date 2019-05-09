@@ -15,13 +15,10 @@ class Election:
         self._votes = list(votes)
         self._candidates = self.__get_all_candidates_from_votes(self._votes)
 
-    def get_candidates(self) -> set:
-        """:return: the set of candidates being voted on in this election"""
-        return self._candidates.copy()
-
     def get_victory_graph(self) -> networkx.DiGraph:
         """A victory graph is a matchup graph of each candidate, but with only edges for wins. Every out-edge represents
-         a win over another candidate.
+         a win over another candidate. Two candidates will not have any edge between them if there is a perfect tie by
+         win ratio.
 
         See `get_matchup_graph` for a description of the attributes on nodes and edges.
          """
@@ -31,7 +28,8 @@ class Election:
             margin_u_to_v = matchups.get_edge_data(u, v)["margin"]
             margin_v_to_u = matchups.get_edge_data(v, u)["margin"]
 
-            # u->v has higher win margin than v->u, keep lower margin
+            # u->v has lower win margin than v->u, keep the "winning edge" with higher win ratio
+            # this will remove both if there is a perfect tie - but that's okay
             if margin_u_to_v <= margin_v_to_u:
                 edges_to_remove.append((u, v))
 
@@ -118,6 +116,9 @@ class Election:
                 matchups[candidate2][candidate1]["ties"] += 1
 
         return matchups
+
+    ####################################################################################################################
+    # Ranking Methods
 
     def ranking_by_ranked_pairs(self) -> list:
         matchups = self.get_victory_graph()

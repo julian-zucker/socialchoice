@@ -5,19 +5,32 @@ example_candidates = {0, 1, 2, 3}
 empty_election = Election([])
 
 
-def test_get_candidates():
-    assert empty_election.get_candidates() == set()
-
-    e1 = Election(example_votes)
-    assert e1.get_candidates() == example_candidates
-
-
 def test_get_victory_graph_empty():
     assert len(empty_election.get_victory_graph()) == 0
+
+    complex_victory_graph = Election(example_votes).get_victory_graph()
+    assert (0, 1) in complex_victory_graph.edges
+    assert (2, 3) in complex_victory_graph.edges
+    assert (3, 0) in complex_victory_graph.edges
+    assert (1, 0) not in complex_victory_graph.edges
+
+    assert complex_victory_graph.get_edge_data(0, 1) == {"wins": 1, "ties": 0, "losses": 0, "margin": 1}
+    assert complex_victory_graph.get_edge_data(3, 0) == {"wins": 1, "ties": 1, "losses": 0, "margin": .5}
 
 
 def test_get_matchup_graph():
     assert len(empty_election.get_matchup_graph()) == 0
+
+    complex_matchup_graph = Election(example_votes).get_matchup_graph()
+    assert (0, 1) in complex_matchup_graph.edges
+    assert (1, 0) in complex_matchup_graph.edges
+    assert (2, 3) in complex_matchup_graph.edges
+    assert (3, 2) in complex_matchup_graph.edges
+    assert (3, 0) in complex_matchup_graph.edges
+    assert (0, 3) in complex_matchup_graph.edges
+
+    assert complex_matchup_graph.get_edge_data(0, 1) == {"wins": 1, "ties": 0, "losses": 0, "margin": 1}
+    assert complex_matchup_graph.get_edge_data(3, 0) == {"wins": 1, "ties": 1, "losses": 0, "margin": .5}
 
 
 def test_get_matchups():
