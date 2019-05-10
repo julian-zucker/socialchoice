@@ -1,59 +1,7 @@
-from socialchoice import Election, PairwiseBallets
+from socialchoice import Election, PairwiseBallots
 
-example_votes = PairwiseBallets([[0, 1, "win"], [3, 2, "loss"], [2, 3, "win"], [0, 3, "tie"], [3, 0, "win"]])
-example_candidates = {0, 1, 2, 3}
-empty_election = Election(PairwiseBallets([]))
-
-
-def test_get_victory_graph_empty():
-    assert len(empty_election.get_victory_graph()) == 0
-
-    complex_victory_graph = Election(example_votes).get_victory_graph()
-    assert (0, 1) in complex_victory_graph.edges
-    assert (2, 3) in complex_victory_graph.edges
-    assert (3, 0) in complex_victory_graph.edges
-    assert (1, 0) not in complex_victory_graph.edges
-
-    assert complex_victory_graph.get_edge_data(0, 1) == {"wins": 1, "ties": 0, "losses": 0, "margin": 1}
-    assert complex_victory_graph.get_edge_data(3, 0) == {"wins": 1, "ties": 1, "losses": 0, "margin": .5}
-
-
-def test_get_matchup_graph():
-    assert len(empty_election.get_matchup_graph()) == 0
-
-    complex_matchup_graph = Election(example_votes).get_matchup_graph()
-    assert (0, 1) in complex_matchup_graph.edges
-    assert (1, 0) in complex_matchup_graph.edges
-    assert (2, 3) in complex_matchup_graph.edges
-    assert (3, 2) in complex_matchup_graph.edges
-    assert (3, 0) in complex_matchup_graph.edges
-    assert (0, 3) in complex_matchup_graph.edges
-
-    assert complex_matchup_graph.get_edge_data(0, 1) == {"wins": 1, "ties": 0, "losses": 0, "margin": 1}
-    assert complex_matchup_graph.get_edge_data(3, 0) == {"wins": 1, "ties": 1, "losses": 0, "margin": .5}
-
-
-def test_get_matchups():
-    assert PairwiseBallets([]).get_matchups() == {}
-
-    assert example_votes.get_matchups() == {
-        0: {1: {'wins': 1, 'losses': 0, 'ties': 0},
-            2: {'wins': 0, 'losses': 0, 'ties': 0},
-            3: {'wins': 0, 'losses': 1, 'ties': 1}
-            },
-        1: {0: {'wins': 0, 'losses': 1, 'ties': 0},
-            2: {'wins': 0, 'losses': 0, 'ties': 0},
-            3: {'wins': 0, 'losses': 0, 'ties': 0}
-            },
-        2: {0: {'wins': 0, 'losses': 0, 'ties': 0},
-            1: {'wins': 0, 'losses': 0, 'ties': 0},
-            3: {'wins': 2, 'losses': 0, 'ties': 0}
-            },
-        3: {0: {'wins': 1, 'losses': 0, 'ties': 1},
-            1: {'wins': 0, 'losses': 0, 'ties': 0},
-            2: {'wins': 0, 'losses': 2, 'ties': 0}
-            }
-    }
+empty_election = Election(PairwiseBallots([]))
+example_votes = PairwiseBallots([[0, 1, "win"], [3, 2, "loss"], [2, 3, "win"], [0, 3, "tie"], [3, 0, "win"]])
 
 
 def test_get_ranked_pairs_ranking():

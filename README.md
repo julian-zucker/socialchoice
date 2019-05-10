@@ -5,9 +5,9 @@ This library implements [social choice mechanisms](https://en.wikipedia.org/wiki
 
 
 #### A minimal example
-```
->>> from socialchoice import PairwiseBallets, Election   
->>> ballots = PairwiseBallets([("scala", "python3", "win"), ("java", "python3", "loss")])
+```python
+>>> from socialchoice import PairwiseBallots, Election   
+>>> ballots = PairwiseBallots([("scala", "python3", "win"), ("java", "python3", "loss")])
 >>> election = Election(ballots)
 >>> election.ranking_by_ranked_pairs()
 ['scala', 'python3', 'java']
@@ -27,8 +27,7 @@ pip3 install -r requirements.txt
 ```
 Run the tests, just to be sure:
 ```bash
-py.test test/
-python3 -m doctest -v README.md
+py.test --doctest-glob=*.md
 ```
 Now, modifications made in the source will automatically update in your venv, so you can rerun your tests without worrying about if you remembered to re-install the package or not.
 
