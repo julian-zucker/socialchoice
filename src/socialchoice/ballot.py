@@ -57,8 +57,8 @@ class PairwiseBallotBox(BallotBox):
                            that were being voted on in this election.
         :raises InvalidVoteShapeException: if given any vote with length != 3
         """
-        self._votes = self.__ensure_valid_votes(votes)
-        self._candidates = candidates or self.__get_all_candidates_from_votes(self._votes)
+        self.ballots = self.__ensure_valid_votes(votes)
+        self.candidates = candidates or self.__get_all_candidates_from_votes(self.ballots)
 
     @staticmethod
     def __get_all_candidates_from_votes(votes) -> set:
@@ -124,16 +124,16 @@ class PairwiseBallotBox(BallotBox):
 
     def get_matchups(self) -> dict:
         matchups = {}
-        for candidate in self._candidates:
+        for candidate in self.candidates:
             matchups[candidate] = {}
-        for candidate1 in self._candidates:
-            for candidate2 in self._candidates:
+        for candidate1 in self.candidates:
+            for candidate2 in self.candidates:
                 if candidate1 == candidate2:
                     continue
                 matchups[candidate1][candidate2] = {"wins": 0, "losses": 0, "ties": 0}
                 matchups[candidate2][candidate1] = {"wins": 0, "losses": 0, "ties": 0}
 
-        for vote in self._votes:
+        for vote in self.ballots:
             candidate1, candidate2, result = vote
             if result == "win":
                 matchups[candidate1][candidate2]["wins"] += 1
