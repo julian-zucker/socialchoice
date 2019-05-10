@@ -6,8 +6,8 @@ This library implements [social choice mechanisms](https://en.wikipedia.org/wiki
 
 #### A minimal example
 ```python
->>> from socialchoice import PairwiseBallots, Election   
->>> ballots = PairwiseBallots([("scala", "python3", "win"), ("java", "python3", "loss")])
+>>> from socialchoice import PairwiseBallotBox, Election   
+>>> ballots = PairwiseBallotBox([("scala", "python3", "win"), ("java", "python3", "loss")])
 >>> election = Election(ballots)
 >>> election.ranking_by_ranked_pairs()
 ['scala', 'python3', 'java']

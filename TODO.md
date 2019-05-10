@@ -1,5 +1,4 @@
 #### TODOs
-* support for ranked choice input
 * convert partial pairwise preferences into complete rankings
 * allow users to decide pairwise comparisons must cover every pair
 * add borda count

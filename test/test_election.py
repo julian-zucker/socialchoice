@@ -1,7 +1,7 @@
-from socialchoice import Election, PairwiseBallots
+from socialchoice import Election, PairwiseBallotBox
 
-empty_election = Election(PairwiseBallots([]))
-example_votes = PairwiseBallots([[0, 1, "win"], [3, 2, "loss"], [2, 3, "win"], [0, 3, "tie"], [3, 0, "win"]])
+empty_election = Election(PairwiseBallotBox([]))
+example_votes = PairwiseBallotBox([[0, 1, "win"], [3, 2, "loss"], [2, 3, "win"], [0, 3, "tie"], [3, 0, "win"]])
 
 
 def test_get_ranked_pairs_ranking():

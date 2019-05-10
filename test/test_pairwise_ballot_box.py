@@ -1,13 +1,13 @@
 import pytest
 
-from socialchoice import PairwiseBallots, InvalidVoteShapeException
+from socialchoice import PairwiseBallotBox, InvalidVoteShapeException, InvalidPairwiseVoteTypeException
 
-empty_votes = PairwiseBallots([])
-example_votes = PairwiseBallots([[0, 1, "win"], [3, 2, "loss"], [2, 3, "win"], [0, 3, "tie"], [3, 0, "win"]])
+empty_votes = PairwiseBallotBox([])
+example_votes = PairwiseBallotBox([[0, 1, "win"], [3, 2, "loss"], [2, 3, "win"], [0, 3, "tie"], [3, 0, "win"]])
 
 
 def test_get_matchups():
-    assert PairwiseBallots([]).get_matchups() == {}
+    assert PairwiseBallotBox([]).get_matchups() == {}
 
     assert example_votes.get_matchups() == {
         0: {1: {'wins': 1, 'losses': 0, 'ties': 0},
@@ -59,4 +59,13 @@ def test_get_matchup_graph():
 
 def test_throws_error_on_wrong_ballot_length():
     with pytest.raises(InvalidVoteShapeException):
-        PairwiseBallots([("a", "b", "win", "fourth thing")])
+        PairwiseBallotBox([("a", "b", "win", "fourth thing")])
+
+    with pytest.raises(InvalidVoteShapeException):
+        PairwiseBallotBox([[]])
+
+    with pytest.raises(InvalidPairwiseVoteTypeException):
+        # Third element must be win/tie/loss
+        PairwiseBallotBox([("a", "b", "foo")])
+
+    PairwiseBallotBox([("a", "b", "win"), ("a", "b", "loss"), ("a", "b", "tie")])
