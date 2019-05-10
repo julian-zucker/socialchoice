@@ -8,6 +8,7 @@ This allows us to factor out the package into multiple files while keeping a con
 from ballot import \
     InvalidVoteShapeException, \
     InvalidPairwiseVoteTypeException, \
+    BallotBox, \
     PairwiseBallotBox, \
     RankedChoiceBallotBox
 

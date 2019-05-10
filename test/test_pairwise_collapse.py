@@ -1,5 +1,8 @@
-from ballot import BallotBox
-from election import Election
+from hypothesis import given, note
+from hypothesis import strategies as st
+from more_itertools import flatten
+
+from socialchoice import *
 from pairwise_collapse import pairwise_collapse
 
 
@@ -34,3 +37,20 @@ def test_incomplete_unvoted_elements_in_middle():
 
     result4 = pairwise_collapse([(1, 4, "win")], candidates={1, 2, 3, 4})
     assert result4 == [1, 2, 3, 4] or result4 == [1, 3, 2, 4]
+
+
+@given(
+    st.lists(
+        st.lists(
+            st.sampled_from([(a, b, "win") for a in range(10) for b in range(10) if a != b]),
+            min_size=1),
+        min_size=1, max_size=500))
+def test_pairwise_collapse_equal_to_pairwise_comparisons(pairwise_votes):
+    pairwise_votes = [list(set(x)) for x in pairwise_votes]
+    note(f"Pairwise votes: {pairwise_votes}")
+
+    pairwise = PairwiseBallotBox(flatten(pairwise_votes))
+
+    if len(pairwise.get_matchups()) == 10:
+        ranked = RankedChoiceBallotBox([pairwise_collapse(vote_set, set(range(10))) for vote_set in pairwise_votes])
+        assert_same_rankings(pairwise, ranked)
