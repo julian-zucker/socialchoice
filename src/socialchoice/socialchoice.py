@@ -13,3 +13,5 @@ from ballot import \
     RankedChoiceBallotBox
 
 from election import Election
+
+from pairwise_collapse import pairwise_collapse

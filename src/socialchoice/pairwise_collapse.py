@@ -52,7 +52,7 @@ def insert_unvoted_items(partial_ranking, candidates):
     not_added = candidates.difference(partial_ranking)
 
     for elem in not_added:
-        insertion_index = random.randint(1, len(partial_ranking)-1)
+        insertion_index = random.randint(1, max(1, len(partial_ranking)-1))
         partial_ranking.insert(insertion_index, elem)
 
     return partial_ranking
