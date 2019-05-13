@@ -43,14 +43,14 @@ def test_incomplete_unvoted_elements_in_middle():
     st.lists(
         st.lists(
             st.sampled_from([(a, b, "win") for a in range(10) for b in range(10) if a != b]),
-            min_size=1),
-        min_size=1, max_size=500))
+            min_size=1)
+            .map(set)
+            .map(list),
+        min_size=1, max_size=5000))
 def test_pairwise_collapse_equal_to_pairwise_comparisons(pairwise_votes):
-    pairwise_votes = [list(set(x)) for x in pairwise_votes]
     note(f"Pairwise votes: {pairwise_votes}")
 
     pairwise = PairwiseBallotBox(flatten(pairwise_votes))
-
-    if len(pairwise.get_matchups()) == 10:
+    if len(pairwise.candidates) == 10:
         ranked = RankedChoiceBallotBox([pairwise_collapse(vote_set, set(range(10))) for vote_set in pairwise_votes])
         assert_same_rankings(pairwise, ranked)

@@ -1,4 +1,6 @@
 import networkx as nx
+from more_itertools import flatten
+
 
 class BallotBox:
     """An interface for the features of ballot boxes"""
@@ -45,6 +47,7 @@ class BallotBox:
         :return: a matchup mapping, as described above
         """
 
+
 class PairwiseBallotBox(BallotBox):
     """Stores ballots in pairwise form, as in: ["Alice",  "Bob", "win"]"""
 
@@ -71,10 +74,10 @@ class PairwiseBallotBox(BallotBox):
     def __ensure_valid_votes(votes: iter) -> list:
         for vote in votes:
             if not len(vote) == 3:
-                raise InvalidVoteShapeException("Expected a vote of length three, got " + str(vote))
+                raise InvalidBallotDataException("Expected a vote of length three, got " + str(vote))
 
             if not vote[2] in {"win", "loss", "tie"}:
-                raise InvalidPairwiseVoteTypeException(
+                raise InvalidBallotDataException(
                     """Expected type to be one of {"win", "loss", "tie"}, got""" + str(vote))
 
         return list(votes)
@@ -149,17 +152,14 @@ class PairwiseBallotBox(BallotBox):
 
 
 class RankedChoiceBallotBox(BallotBox):
-    # TODO add optional candidate list
-    # TODO allow specify votes by index or candidate name
-    # TODO validate vote shape
-    # TODO validate vote length against candidate list if provided
-    # TODO allow expression of ties in rankings
-    def __init__(self, ballots):
+    def __init__(self, ballots, candidates=None, require_full_ballots=False):
+        self.ballots = self.__ensure_valid_ballots(ballots, candidates, require_full_ballots)
+
         pairwise_ballots = []
 
         for ranking in ballots:
             for i, candidate in enumerate(ranking):
-                for candidate2 in ranking[i+1:]:
+                for candidate2 in ranking[i + 1:]:
                     pairwise_ballots.append((candidate, candidate2, "win"))
 
         self.pairwise_ballot_box = PairwiseBallotBox(pairwise_ballots)
@@ -173,10 +173,61 @@ class RankedChoiceBallotBox(BallotBox):
     def get_matchups(self) -> dict:
         return self.pairwise_ballot_box.get_matchups()
 
+    def __ensure_valid_ballots(self, ballots, candidates, require_full_ballots):
+        if len(ballots) == 0 or any(not isinstance(ballot, list) for ballot in ballots):
+            raise InvalidBallotDataException("Ballots must be a non-empty iterable of lists")
 
-class InvalidVoteShapeException(Exception):
-    """Raised if a Ballot's constructor is called with input that is invalid due to its shape."""
+        def ballot_candidates(ballot):
+            """Gets the set of candidates written in a a ballot.
+            This is slightly involved because a ranking with ties contains elements that are either a non-list
+            element (a single candidate) or a list, which is a set of candidates that are tied. Simple flattening
+            doesn't work, you have to check every element for list-ness, but only once because it can't be nested.
+            """
+            candidate_set = set()
+            for item in ballot:
+                if isinstance(item, list):
+                    # If there is a list, it is a tie, so process it one element at a time.
+                     for elem in item:
+                        if elem in candidate_set:
+                            raise InvalidBallotDataException(f"Candidate {elem} appears multiple times in{ballot}")
+                        candidate_set.add(elem)
+                else:
+                    # If it's not a list, we can just process one at a time.
+                    if item in candidate_set:
+                        raise InvalidBallotDataException(f"Candidate {item} appears multiple times in{ballot}")
+                    candidate_set.add(item)
+            return candidate_set
+
+        # Need to either get or infer the candidate set to validate that ballots are full, and to ensure that each
+        # ballot doesn't contain elements not in the candidate set.
+        if candidates:
+            candidate_set = set(candidates)
+            if not len(candidates) == len(candidate_set):
+                raise InvalidElectionDataException(f"Duplicate candidates in {candidates}")
+        else:
+            candidate_set = set()
+            for ballot in ballots:
+                candidate_set |= ballot_candidates(ballot)
+
+        for ballot in ballots:
+            ballot_contents = ballot_candidates(ballot)
+
+            for vote_candidate in ballot_contents:
+                if vote_candidate not in candidate_set:
+                    raise InvalidBallotDataException(f"Ballot {ballot} contains candidate {vote_candidate}, " +
+                                                     f"which is not found in candidate set {candidate_set}")
+
+            if require_full_ballots:
+                if ballot_contents != candidate_set:
+                    raise InvalidBallotDataException(f"Requiring full ballots: ballot {ballot}" +
+                                                     f" did not contain all of {candidate_set}.")
+
+        return ballots
 
 
-class InvalidPairwiseVoteTypeException(Exception):
-    """Raised if a PairwiseBallot's constructor is called with input that is invalid due to its vote type."""
+class InvalidElectionDataException(Exception):
+    """Raised if there is invalid data somewhere other than the ballots."""
+
+
+class InvalidBallotDataException(Exception):
+    """Raised if a ballot has invalid data, for example, contains a candidate not in the list of candidates."""

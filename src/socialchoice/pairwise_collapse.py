@@ -10,16 +10,14 @@ import networkx as nx
 from more_itertools import flatten
 
 
-def pairwise_collapse(pairwise_votes, candidates=None) -> list:
+def pairwise_collapse(pairwise_votes, candidates=None, upsample=False) -> list:
     candidates = candidates or set(flatten([(v[0], v[1]) for v in pairwise_votes]))
-
-
-    transitive_votes = resolve_intransitivity(pairwise_votes)
+    transitive_votes = resolve_intransitivity(pairwise_votes, upsample)
     complete_ranking = insert_unvoted_items(transitive_votes, candidates)
     return complete_ranking
 
 
-def resolve_intransitivity(pairwise_votes):
+def resolve_intransitivity(pairwise_votes, upsample):
     """Resolves any intransitivities in a set of votes.
 
     :param pairwise_votes: a set of votes from one user, as an iterable of vote-tuples

@@ -1,7 +1,5 @@
 from socialchoice import RankedChoiceBallotBox, Election
 
-empty_votes = RankedChoiceBallotBox([])
-
 example_votes = RankedChoiceBallotBox([
     [1, 2, 3, 4],
     [1, 3, 2, 4],
