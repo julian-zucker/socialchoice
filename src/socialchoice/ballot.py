@@ -1,6 +1,8 @@
 import networkx as nx
 from more_itertools import flatten
 
+from pairwise_collapse import pairwise_collapse
+
 
 class BallotBox:
     """An interface for the features of ballot boxes"""
@@ -149,6 +151,10 @@ class PairwiseBallotBox(BallotBox):
                 matchups[candidate2][candidate1]["ties"] += 1
 
         return matchups
+
+    def to_ranked_choice_ballot_box(self):
+        return RankedChoiceBallotBox(pairwise_collapse(self.ballots))
+        
 
 
 class RankedChoiceBallotBox(BallotBox):

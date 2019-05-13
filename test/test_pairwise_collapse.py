@@ -7,6 +7,11 @@ from pairwise_collapse import pairwise_collapse
 
 
 def assert_same_rankings(ballot_box_1: BallotBox, ballot_box_2: BallotBox):
+    """This function is a test utility that ensures two ballot boxes are roughly equivalent by asserting that they
+    have the same rankings by multiple methods.
+
+    :raises: AssertionError if the rankings differ
+    """
     e1 = Election(ballot_box_1)
     e2 = Election(ballot_box_2)
     assert e1.ranking_by_ranked_pairs() == e2.ranking_by_ranked_pairs()
@@ -15,8 +20,8 @@ def assert_same_rankings(ballot_box_1: BallotBox, ballot_box_2: BallotBox):
     assert e1.ranking_by_minimax() == e2.ranking_by_minimax()
 
 
-# Tests that in a cycle, the output isn't intransitive
 def test_intransitive_removed():
+    """If you have three intransitive votes (a minimal cycle), the result should have two of the three."""
     result = pairwise_collapse([(1, 2, "win"), (2, 3, "win"), (3, 1, "win")])
 
     # should still keep most of the structure, so we aren't okay with any of the six options
@@ -30,11 +35,14 @@ def test_incomplete_transitive_votes_filled_in():
 
 
 def test_incomplete_unvoted_elements_in_middle():
+    """If there are three candidates, and one vote, the third candidate should go in the middle."""
+
     result = pairwise_collapse([(1, 2, "win")], candidates={1, 2, 3})
     # Why do unvoted elements go in the middle? We have one bit of evidence against 2, and one bit of evidence towards
     # 1, so 3 ought to be in between.
     assert result == [1, 3, 2]
 
+    # Also testing this with four, but this test I'm willing to give up
     result4 = pairwise_collapse([(1, 4, "win")], candidates={1, 2, 3, 4})
     assert result4 == [1, 2, 3, 4] or result4 == [1, 3, 2, 4]
 
@@ -48,6 +56,7 @@ def test_incomplete_unvoted_elements_in_middle():
             .map(list),
         min_size=1, max_size=5000))
 def test_pairwise_collapse_equal_to_pairwise_comparisons(pairwise_votes):
+    """Tests that on an arbitrary input set with """
     note(f"Pairwise votes: {pairwise_votes}")
 
     pairwise = PairwiseBallotBox(flatten(pairwise_votes))
