@@ -22,3 +22,7 @@ def test_copeland_on_ranked_choice():
     ranking = example_election.ranking_by_copeland(include_score=True)
 
     assert ranking == [(1, 3), (2, 1), (3, -1), (4, -3)]
+
+    ranking_no_score = example_election.ranking_by_copeland()
+    assert ranking_no_score == [1, 2, 3, 4]
+

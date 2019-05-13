@@ -15,12 +15,41 @@ def optional_score(ranking_method):
     """
     # This unfortunately has to be defined above Election to be used in Election
 
+    def nest_ties(ranking):
+        """
+        >>> nest_ties([("a", 1), ("b", 1), ("c", 0)])
+        [[("a", 1), ("b", 1)], [("c", 0)]]
+
+        :param ranking: A list of 2-tuples of (item, score)
+        :return: a list of lists of 2-tuples, where each list in the outer list contains only items with the same score.
+        """
+        if len(ranking) == 0:
+            return ranking
+
+        out = []
+        current_tie = [ranking[0]]
+        for item, score in ranking[1:]:
+            # There are no items in the current tied set, or the score of the current item is the same
+            if current_tie[0][0] == score:
+                current_tie.append((item, score))
+            else:
+                out.append(current_tie)
+                current_tie = [(item, score)]
+        return out
+
+
     @functools.wraps(ranking_method)
-    def wrapped_ranking_method(self, include_score=False):
-        if include_score:
-            return ranking_method(self)
-        else:
-            return [item for item, score in ranking_method(self)]
+    def wrapped_ranking_method(self, include_score=False, group_ties=False):
+        ranking = ranking_method(self)
+
+        if include_score and group_ties:
+            return nest_ties(ranking)
+        elif include_score and not group_ties:
+            return ranking
+        elif not include_score and group_ties:
+            return [item for tie_group in nest_ties(ranking) for item, score in tie_group]
+        elif not include_score and not group_ties:
+            return [item for item, score in ranking]
 
     return wrapped_ranking_method
 

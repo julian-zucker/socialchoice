@@ -1,5 +1,5 @@
 
-####socialchoice: a library for Social Choice Theory
+#### socialchoice: a library for Social Choice Theory
 
 This library implements [social choice mechanisms](https://en.wikipedia.org/wiki/Social_choice_theory). The design goal is to have a consistent API for working with votes, and provide efficient algorithms for computing both social choice mechanisms and answering questions about the vote data. Development is guided by [this chart](https://en.wikipedia.org/wiki/Ranked_pairs#Comparison_table) with a focus on implementing social choice mechanisms with higher levels of green. 
 
