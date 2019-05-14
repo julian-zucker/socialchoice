@@ -1,5 +1,4 @@
 import networkx as nx
-from more_itertools import flatten
 
 from pairwise_collapse import pairwise_collapse
 
@@ -154,7 +153,7 @@ class PairwiseBallotBox(BallotBox):
 
     def to_ranked_choice_ballot_box(self):
         return RankedChoiceBallotBox(pairwise_collapse(self.ballots))
-        
+
 
 
 class RankedChoiceBallotBox(BallotBox):

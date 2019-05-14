@@ -65,15 +65,16 @@ def resolve_intransitivity(pairwise_votes):
         if result == "loss":
             c1, c2 = c2, c1
 
-        # Create a DAG, only add edges that won't create a cycle.
         transitive_votes.add_edge(c1, c2)
-        while True:
-            try:
-                cycles = nx.find_cycle(transitive_votes)
-                # Remove it if we could find a cycle
-                transitive_votes.remove_edge(*cycles[random.randint(0, len(cycles) - 1)])
-            except nx.NetworkXNoCycle:
-                break
+
+    # convert to DAG by removing edges from every cycle
+    while True:
+        try:
+            cycles = nx.find_cycle(transitive_votes)
+            # Remove it if we could find a cycle
+            transitive_votes.remove_edge(*cycles[random.randint(0, len(cycles) - 1)])
+        except nx.NetworkXNoCycle:
+            break
 
     # If it's not a DAG, something's gone horribly wrong above, and also we won't be able to toposort.
     assert nx.is_directed_acyclic_graph(transitive_votes)

@@ -2,6 +2,7 @@ import random
 
 import pytest
 from hypothesis import given, note, strategies as st
+from more_itertools import flatten
 
 from socialchoice import *
 
@@ -69,7 +70,7 @@ def test_pairwise_collapse_equal_to_pairwise_comparisons(pairwise_votes):
 
 @pytest.mark.slow
 def test_pairwise_collapse_equivalent_to_rankings_on_dog_votes():
-    pytest.skip("Need performance improvement before running this is valid")
+    # pytest.skip("Need performance improvement before running this is valid")
     import csv
 
     with open("test/data/dog_project_votes.csv") as votes_fd:
@@ -85,4 +86,5 @@ def test_pairwise_collapse_equivalent_to_rankings_on_dog_votes():
     ranks = pairwise_collapse_by_voter(vote_sets.values(), upsample=True)
     rbb = RankedChoiceBallotBox(ranks)
 
+    print(num_inversions(Election(pbb).ranking_by_ranked_pairs(), Election(rbb).ranking_by_ranked_pairs()))
     assert Election(pbb).ranking_by_ranked_pairs() == Election(rbb).ranking_by_ranked_pairs()
