@@ -23,23 +23,27 @@ def pairwise_collapse_by_voter(pairwise_votes_by_voter, candidates=None, upsampl
 
     rankings = []
 
-    for voter in pairwise_votes_by_voter:
+    for voter_votes in pairwise_votes_by_voter:
         if upsample:
-            # Once per pairwise vote
-            for _ in voter:
-                rankings.append(pairwise_collapse(voter, candidates))
+            rankings += pairwise_collapse_upsampling(voter_votes, candidates)
         else:
-            # Once per voter
-            rankings.append(pairwise_collapse(voter, candidates))
+            rankings.append(pairwise_collapse(voter_votes, candidates))
 
     return rankings
 
-def pairwise_collapse(pairwise_votes, candidates=None) -> list:
-    """Converts a set of pairwise votes into a ranking over all of the candidates."""
+
+def pairwise_collapse(pairwise_votes, candidates=None, upsample=False) -> list:
+    """Converts a set of pairwise votes into a ranking or list of rankings over all of the candidates.
+    Returns a single ranking if `upsample` is falsy, and a list of rankings with length `len(pairwise_votes)
+    if `upsample` is truthy. """
     candidates = candidates or set(flatten([(v[0], v[1]) for v in pairwise_votes]))
     transitive_votes = resolve_intransitivity(pairwise_votes)
-    complete_ranking = insert_unvoted_items(transitive_votes, candidates)
-    return complete_ranking
+    return insert_unvoted_items(transitive_votes, candidates)
+
+def pairwise_collapse_upsampling(pairwise_votes, candidates=None):
+    candidates = candidates or set(flatten([(v[0], v[1]) for v in pairwise_votes]))
+    transitive_votes = [resolve_intransitivity(pairwise_votes)] * len(pairwise_votes)
+    return [insert_unvoted_items(v, candidates) for v in transitive_votes]
 
 
 def resolve_intransitivity(pairwise_votes):
@@ -67,7 +71,7 @@ def resolve_intransitivity(pairwise_votes):
             try:
                 cycles = nx.find_cycle(transitive_votes)
                 # Remove it if we could find a cycle
-                transitive_votes.remove_edge(*cycles[random.randint(0, len(cycles)-1)])
+                transitive_votes.remove_edge(*cycles[random.randint(0, len(cycles) - 1)])
             except nx.NetworkXNoCycle:
                 break
 
@@ -85,7 +89,7 @@ def insert_unvoted_items(partial_ranking, candidates):
     not_added = candidates.difference(partial_ranking)
 
     for elem in not_added:
-        insertion_index = random.randint(1, max(1, len(partial_ranking)-1))
+        insertion_index = random.randint(1, max(1, len(partial_ranking) - 1))
         partial_ranking.insert(insertion_index, elem)
 
     return partial_ranking

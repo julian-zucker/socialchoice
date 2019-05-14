@@ -68,7 +68,7 @@ def test_pairwise_collapse_equal_to_pairwise_comparisons(pairwise_votes):
 
 
 @pytest.mark.slow
-def test_pairwise_collapse_equivalent_to_dogs():
+def test_pairwise_collapse_equivalent_to_rankings_on_dog_votes():
     import csv
 
     with open("test/data/dog_project_votes.csv") as votes_fd:
