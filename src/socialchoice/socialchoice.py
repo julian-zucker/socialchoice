@@ -9,4 +9,4 @@ from ballot import *
 
 from election import Election
 
-from pairwise_collapse import pairwise_collapse
+from pairwise_collapse import pairwise_collapse, pairwise_collapse_by_voter

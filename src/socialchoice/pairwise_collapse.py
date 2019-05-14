@@ -13,7 +13,6 @@ def pairwise_collapse_by_voter(pairwise_votes_by_voter, candidates=None, upsampl
     """Given a list of lists of pairwise votes, where each list corresponds to one voter's complete vote set,
     produces a list of rankings over the candidates.
 
-
     :param pairwise_votes_by_voter: the votes, as a list of vote sets from a voter.
     :param candidates: the list of candidates, inferred from the pairwise votes if not provided. Recommended to provide
     for small vote sets if worried about not all candidates appearing at least once in the votes.
@@ -64,12 +63,13 @@ def resolve_intransitivity(pairwise_votes):
 
         # Create a DAG, only add edges that won't create a cycle.
         transitive_votes.add_edge(c1, c2)
-        try:
-            nx.find_cycle(transitive_votes)
-            # Remove it if we could find a cycle
-            transitive_votes.remove_edge(c1, c2)
-        except nx.NetworkXNoCycle:
-            pass
+        while True:
+            try:
+                cycles = nx.find_cycle(transitive_votes)
+                # Remove it if we could find a cycle
+                transitive_votes.remove_edge(*cycles[random.randint(0, len(cycles)-1)])
+            except nx.NetworkXNoCycle:
+                break
 
     # If it's not a DAG, something's gone horribly wrong above, and also we won't be able to toposort.
     assert nx.is_directed_acyclic_graph(transitive_votes)

@@ -1,9 +1,9 @@
-from hypothesis import given, note
-from hypothesis import strategies as st
-from more_itertools import flatten
+import random
+
+import pytest
+from hypothesis import given, note, strategies as st
 
 from socialchoice import *
-from pairwise_collapse import pairwise_collapse
 
 
 def assert_same_rankings(ballot_box_1: BallotBox, ballot_box_2: BallotBox):
@@ -56,10 +56,30 @@ def test_incomplete_unvoted_elements_in_middle():
             .map(list),
         min_size=1, max_size=5000))
 def test_pairwise_collapse_equal_to_pairwise_comparisons(pairwise_votes):
-    """Tests that on an arbitrary input set with """
+    """Tests that on an arbitrary input set with only win votes"""
     note(f"Pairwise votes: {pairwise_votes}")
 
     pairwise = PairwiseBallotBox(flatten(pairwise_votes))
     if len(pairwise.candidates) == 10:
         ranked = RankedChoiceBallotBox([pairwise_collapse(vote_set, set(range(10))) for vote_set in pairwise_votes])
         assert_same_rankings(pairwise, ranked)
+
+
+@pytest.mark.slow
+def test_pairwise_collapse_equivalent_to_dogs():
+    import csv
+
+    with open("test/data/dog_project_votes.csv") as votes_fd:
+        votes = [x for x in csv.reader(votes_fd)]
+
+    pbb = PairwiseBallotBox([vote[0:3] for vote in votes])
+
+    vote_sets = {v[3]: [] for v in votes}
+
+    for vote in votes:
+        vote_sets[vote[3]].append(vote[0:3])
+
+    ranks = pairwise_collapse_by_voter(vote_sets.values(), upsample=True)
+    rbb = RankedChoiceBallotBox(ranks)
+
+    assert Election(pbb).ranking_by_ranked_pairs() == Election(rbb).ranking_by_ranked_pairs()
