@@ -47,6 +47,8 @@ def test_incomplete_unvoted_elements_in_middle():
     assert result4 == [1, 2, 3, 4] or result4 == [1, 3, 2, 4]
 
 
+@pytest.mark.slow
+@pytest.mark.hypothesis
 @given(
     st.lists(
         st.lists(
