@@ -6,3 +6,4 @@
   * find test that shows difference in votes, replicate dog variance
 * improve documentation
 * put on PyPI
+* vote generation - simulate pairwise voting given candidates with ELOs and variances

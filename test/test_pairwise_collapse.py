@@ -67,24 +67,3 @@ def test_pairwise_collapse_equal_to_pairwise_comparisons(pairwise_votes):
         ranked = RankedChoiceBallotBox([pairwise_collapse(vote_set, set(range(10))) for vote_set in pairwise_votes])
         assert_same_rankings(pairwise, ranked)
 
-
-@pytest.mark.slow
-def test_pairwise_collapse_equivalent_to_rankings_on_dog_votes():
-    # pytest.skip("Need performance improvement before running this is valid")
-    import csv
-
-    with open("test/data/dog_project_votes.csv") as votes_fd:
-        votes = [x for x in csv.reader(votes_fd)]
-
-    pbb = PairwiseBallotBox([vote[0:3] for vote in votes])
-
-    vote_sets = {v[3]: [] for v in votes}
-
-    for vote in votes:
-        vote_sets[vote[3]].append(vote[0:3])
-
-    ranks = pairwise_collapse_by_voter(vote_sets.values(), upsample=True)
-    rbb = RankedChoiceBallotBox(ranks)
-
-    print(num_inversions(Election(pbb).ranking_by_ranked_pairs(), Election(rbb).ranking_by_ranked_pairs()))
-    assert Election(pbb).ranking_by_ranked_pairs() == Election(rbb).ranking_by_ranked_pairs()
