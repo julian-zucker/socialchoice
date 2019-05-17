@@ -6,4 +6,6 @@
   * find test that shows difference in votes, replicate dog variance
 * improve documentation
 * put on PyPI
-* vote generation - simulate pairwise voting given candidates with ELOs and variances
+* vote generation - simulate pairwise voting
+* property tests for intransitivity/incompleteness resolvers - ensure robustness for varying graph shapes
+* performance tests for intransitivity/incompleteness resolvers
