@@ -198,26 +198,6 @@ class RankedChoiceBallotBox(BallotBox):
                 raise InvalidBallotDataException(
                     f"Ballots must be a collection of lists, one ballot was {ballot}")
 
-        def ballot_candidates(ballot):
-            """Gets the set of candidates written in a a ballot.
-            This is slightly involved because a ranking with ties contains elements that are either a non-list
-            element (a single candidate) or a list, which is a set of candidates that are tied. Simple flattening
-            doesn't work, you have to check every element for list-ness, but only once because it can't be nested.
-            """
-            candidate_set = set()
-            for item in ballot:
-                if isinstance(item, set):
-                    # If there is a set, it is a tie, so process it one element at a time.
-                    for elem in item:
-                        if elem in candidate_set:
-                            raise InvalidBallotDataException(f"Candidate {elem} appears multiple times in {ballot}")
-                        candidate_set.add(elem)
-                else:
-                    # If it's not a set, we can just process one at a time.
-                    if item in candidate_set:
-                        raise InvalidBallotDataException(f"Candidate {item} appears multiple times in {ballot}")
-                    candidate_set.add(item)
-            return candidate_set
 
         # Need to either get or infer the candidate set to validate that ballots are full, and to ensure that each
         # ballot doesn't contain elements not in the candidate set.
@@ -228,10 +208,16 @@ class RankedChoiceBallotBox(BallotBox):
         else:
             candidate_set = set()
             for ballot in ballots:
-                candidate_set |= ballot_candidates(ballot)
+                try:
+                    candidate_set |= util.candidates_in_ranked_choice_ballot(ballot)
+                except ValueError as e:
+                    raise InvalidBallotDataException(e)
 
         for ballot in ballots:
-            ballot_contents = ballot_candidates(ballot)
+            try:
+                ballot_contents = util.candidates_in_ranked_choice_ballot(ballot)
+            except ValueError as e:
+                raise InvalidBallotDataException(e)
 
             if ballot_contents != candidate_set:
                 raise InvalidBallotDataException(f"Ballot {ballot} did not contain exactly {candidate_set}.")

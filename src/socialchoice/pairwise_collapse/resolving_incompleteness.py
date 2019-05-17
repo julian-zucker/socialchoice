@@ -5,38 +5,45 @@ complete, fully connected, transitive win-graph."""
 import random
 
 import networkx as nx
-from more_itertools import flatten
 
 import util
 from ballot import PairwiseBallotBox
 
+# TODO this file has duplicate code in each of the functions, converting candidates to `to_add`
+#      and also roundtripping to rankings
+from util import candidates_in_ranked_choice_ballot
 
-def place_randomly(win_graph: nx.DiGraph, to_add: set) -> nx.DiGraph:
+
+def place_randomly(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
     """Inserts each candidate to a random place in the ranking."""
-    partial_ranking = _graph_to_ranking(win_graph)
+    ranking = _graph_to_ranking(win_graph)
+    to_add = candidates.difference(set(win_graph.nodes))
     for item in to_add:
-        partial_ranking.insert(random.randrange(0, len(partial_ranking) + 1), item)
-    return _ranking_to_graph(partial_ranking)
+        ranking.insert(random.randrange(0, len(ranking) + 1), item)
+    return _ranking_to_graph(ranking)
 
 
-def add_all_at_beginning(win_graph: nx.DiGraph, to_add: set) -> nx.DiGraph:
+def add_all_at_beginning(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
     """Adds all candidates as winning against everyone."""
+    to_add = candidates.difference(set(win_graph.nodes))
     ranking = _graph_to_ranking(win_graph)
     ranking.insert(0, to_add)
     return _ranking_to_graph(ranking)
 
 
-def add_all_at_end(win_graph: nx.DiGraph, to_add: set) -> nx.DiGraph:
+def add_all_at_end(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
     """Adds all candidates to the end of the ranking."""
+    to_add = candidates.difference(set(win_graph.nodes))
     ranking = _graph_to_ranking(win_graph)
     ranking.append(to_add)
     return _ranking_to_graph(ranking)
 
 
-def add_random_edges(win_graph: nx.DiGraph, to_add: set) -> nx.DiGraph:
+def add_random_edges(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
     """Chooses a random pair of nodes that aren’t connected to each other, and then connects them, never adding
     edges that would result in a cycle, until the graph is a complete win-graph.
     """
+    to_add = candidates.difference(set(win_graph.nodes))
     win_graph = win_graph.copy()
     candidates = set(win_graph.nodes).union(to_add)
     edge_list = []
@@ -62,17 +69,20 @@ def add_random_edges(win_graph: nx.DiGraph, to_add: set) -> nx.DiGraph:
     return win_graph
 
 
-def make_add_edges_by_win_ratio(edges_by_win_ratio):
+def make_add_edges_by_win_ratio(edges_to_win_ratio):
     """Given a list of edges by win ratio, creates a function that will resolve incompleteness by adding
     non-cycle-creating edges from the list until the graph is complete.
 
-    :param edges_by_win_ratio: the list of edges as 2-tuples of (winner, loser), ordered by win rate, highest first
+    :param edges_to_win_ratio: the list of edges as 2-tuples of (winner, loser), ordered by win rate, highest first
     :return:
     """
 
-    def add_edges_by_win_ratio(win_graph: nx.DiGraph, to_add: set) -> nx.DiGraph:
+    edges_by_win_ratio = sorted(edges_to_win_ratio.keys(), key=lambda e: edges_to_win_ratio[e], reverse=True)
+
+    def add_edges_by_win_ratio(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
         """Adds edges into the win-graph in order of the win ratios of those matchups in the entire voting set,
         only adding edges that will not create cycles."""
+        to_add = candidates.difference(set(win_graph.nodes))
         for (c1, c2) in edges_by_win_ratio:
             try:
                 win_graph.add_edge(c1, c2)
@@ -92,4 +102,6 @@ def _graph_to_ranking(g: nx.DiGraph) -> list:
 
 
 def _ranking_to_graph(r: list) -> nx.DiGraph:
-    return PairwiseBallotBox(util.ranking_to_pairwise_ballots(r)).get_victory_graph()
+    ballots = util.ranking_to_pairwise_ballots(r)
+    candidates = candidates_in_ranked_choice_ballot(r)
+    return PairwiseBallotBox(ballots, candidates).get_victory_graph()

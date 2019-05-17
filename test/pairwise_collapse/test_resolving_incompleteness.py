@@ -1,6 +1,7 @@
 import pytest
 
 from pairwise_collapse.resolving_incompleteness import *
+from pairwise_collapse.resolving_incompleteness import _ranking_to_graph
 
 
 @pytest.fixture
@@ -60,3 +61,14 @@ def test_add_edges_by_win_ratio(win_graph, candidates_to_add):
 
     # Edges (1,3) and (3,2) will be added, so this result is required
     assert result == [1, 3, 2]
+
+
+def test_ranking_to_graph():
+    g = _ranking_to_graph([1, 2, 3, 4])
+    assert list(g.nodes) == [1, 2, 3, 4]
+    assert (1, 2) in g.edges
+    assert (1, 3) in g.edges
+    assert (1, 4) in g.edges
+    assert (2, 3) in g.edges
+    assert (2, 4) in g.edges
+    assert (3, 4) in g.edges
