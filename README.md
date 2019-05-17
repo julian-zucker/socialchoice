@@ -1,7 +1,7 @@
 
 #### socialchoice: a library for Social Choice Theory
 
-This library implements [social choice mechanisms](https://en.wikipedia.org/wiki/Social_choice_theory). Development is guided by [this chart](https://en.wikipedia.org/wiki/Ranked_pairs#Comparison_table) with a focus on implementing social choice mechanisms with higher levels of green. 
+This library implements [social choice mechanisms](https://en.wikipedia.org/wiki/Social_choice_theory).
 
 
 #### A minimal example

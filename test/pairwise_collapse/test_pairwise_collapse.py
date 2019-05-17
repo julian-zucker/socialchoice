@@ -4,6 +4,8 @@ import pytest
 from hypothesis import given, note, strategies as st
 from more_itertools import flatten
 
+from pairwise_collapse.resolving_incompleteness import place_randomly
+from pairwise_collapse.resolving_intransitivity import break_random_link
 from socialchoice import *
 
 
@@ -23,7 +25,7 @@ def assert_same_rankings(ballot_box_1: BallotBox, ballot_box_2: BallotBox):
 
 def test_intransitive_removed():
     """If you have three intransitive votes (a minimal cycle), the result should have two of the three."""
-    result = pairwise_collapse([(1, 2, "win"), (2, 3, "win"), (3, 1, "win")])
+    result = pairwise_collapse([(1, 2, "win"), (2, 3, "win"), (3, 1, "win")], {1,2,3}, break_random_link, place_randomly)
 
     # should still keep most of the structure, so we aren't okay with any of the six options
     assert result in [[1, 2, 3], [2, 3, 1], [3, 1, 2]]
@@ -31,39 +33,5 @@ def test_intransitive_removed():
 
 def test_incomplete_transitive_votes_filled_in():
     """This test shows how a missing 1->3 win isn't an issue if you have 1->2 and 2->3"""
-    result = pairwise_collapse([(1, 2, "win"), (2, 3, "win")])
+    result = pairwise_collapse([(1, 2, "win"), (2, 3, "win")], {1,2,3}, break_random_link, place_randomly)
     assert result == [1, 2, 3]
-
-
-def test_incomplete_unvoted_elements_in_middle():
-    """If there are three candidates, and one vote, the third candidate should go in the middle."""
-
-    result = pairwise_collapse([(1, 2, "win")], candidates={1, 2, 3})
-    # Why do unvoted elements go in the middle? We have one bit of evidence against 2, and one bit of evidence towards
-    # 1, so 3 ought to be in between.
-    assert result == [1, 3, 2]
-
-    # Also testing this with four, but this test I'm willing to give up
-    result4 = pairwise_collapse([(1, 4, "win")], candidates={1, 2, 3, 4})
-    assert result4 == [1, 2, 3, 4] or result4 == [1, 3, 2, 4]
-
-
-@pytest.mark.slow
-@pytest.mark.hypothesis
-@given(
-    st.lists(
-        st.lists(
-            st.sampled_from([(a, b, "win") for a in range(10) for b in range(10) if a != b]),
-            min_size=1)
-            .map(set)
-            .map(list),
-        min_size=1, max_size=5000))
-def test_pairwise_collapse_equal_to_pairwise_comparisons(pairwise_votes):
-    """Tests that on an arbitrary input set with only win votes"""
-    note(f"Pairwise votes: {pairwise_votes}")
-
-    pairwise = PairwiseBallotBox(flatten(pairwise_votes))
-    if len(pairwise.candidates) == 10:
-        ranked = RankedChoiceBallotBox([pairwise_collapse(vote_set, set(range(10))) for vote_set in pairwise_votes])
-        assert_same_rankings(pairwise, ranked)
-
