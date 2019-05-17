@@ -1,3 +1,5 @@
+from itertools import combinations
+
 import networkx as nx
 
 from pairwise_collapse.pairwise_collapse import pairwise_collapse
@@ -54,7 +56,7 @@ class PairwiseBallotBox(BallotBox):
 
     def __init__(self, votes, candidates=None):
         """
-        Creates a new pairwise Ballot.
+        Creates a new PairwiseBallotBox. This shows that
 
         :param votes: An array of votes, where a vote is any indexable object of length 3
         :param candidates: None, meaning to infer the candidate set from the votes, or a collection of the candidates
@@ -130,6 +132,7 @@ class PairwiseBallotBox(BallotBox):
         matchups = {}
         for candidate in self.candidates:
             matchups[candidate] = {}
+
         for candidate1 in self.candidates:
             for candidate2 in self.candidates:
                 if candidate1 == candidate2:
@@ -155,17 +158,42 @@ class PairwiseBallotBox(BallotBox):
         return RankedChoiceBallotBox(pairwise_collapse(self.ballots))
 
 
-
 class RankedChoiceBallotBox(BallotBox):
-    def __init__(self, ballots, candidates=None, require_full_ballots=False):
-        self.ballots = self.__ensure_valid_ballots(ballots, candidates, require_full_ballots)
+    def __init__(self, ballots, candidates=None):
+        """Creates a RankedChoiceBallotBox from the given ballots. Each ballot must be a list, where each element
+        is either a candidate or a set of candidates. A single candidate in a ballot represents that candidate
+        being at that position, and a set represents a tie for that position.
 
+        Each ballot must contain every candidate found in candidates, or if candidates is not provided, the
+        candidates mentioned in every other ballot.
+
+        :param ballots: a list of ballots, as described above.
+        :param candidates: the set of candidates being voted on. Inferred from ballots if not provided.
+        """
+        self.ballots = self.__ensure_valid_ballots(ballots, candidates)
+
+        self.ballots_all_sets = self.__convert_to_sets(self.ballots)
+
+        # We want to convert to pairwise ballots because there's no use reimplementing the code in PairwiseBallotBox
+        # for rankings, we can just convert a ranking to its constituent pairwise preferences and create our own
+        # PairwiseBallotBox that we can forward requests for pairwise-result based rankings to.
+
+        # to convert to pairwise ballots, we'll have to look at each ranking
         pairwise_ballots = []
+        for ranking in self.ballots_all_sets:
+            # and within each set in that ranking, all pairs of elements (combinations of size 2) are tied
+            for candidate_set in ranking:
+                for candidate1, candidate2 in combinations(candidate_set, 2):
+                    pairwise_ballots.append((candidate1, candidate2, "tie"))
 
-        for ranking in ballots:
-            for i, candidate in enumerate(ranking):
-                for candidate2 in ranking[i + 1:]:
-                    pairwise_ballots.append((candidate, candidate2, "win"))
+            # For each candidate set, and every candidate set after them in the ranking, the first set wins against
+            # each set in the second
+            for i, winner_candidate_set in enumerate(ranking):
+                for losing_candidate_set in ranking[i + 1:]:
+                    # (but because they are both sets, we have to iterate over each candidate in each)
+                    for winning_candidate in winner_candidate_set:
+                        for losing_candidate in losing_candidate_set:
+                            pairwise_ballots.append((winning_candidate, losing_candidate, "win"))
 
         self.pairwise_ballot_box = PairwiseBallotBox(pairwise_ballots)
 
@@ -178,9 +206,13 @@ class RankedChoiceBallotBox(BallotBox):
     def get_matchups(self) -> dict:
         return self.pairwise_ballot_box.get_matchups()
 
-    def __ensure_valid_ballots(self, ballots, candidates, require_full_ballots):
-        if len(ballots) == 0 or any(not isinstance(ballot, list) for ballot in ballots):
-            raise InvalidBallotDataException("Ballots must be a non-empty iterable of lists")
+    def __ensure_valid_ballots(self, ballots, candidates):
+        if not len(ballots):
+            raise InvalidBallotDataException("Cannot create RankedChoiceBallotBox with empty ballot list")
+        for ballot in ballots:
+            if not isinstance(ballot, list):
+                raise InvalidBallotDataException(
+                    f"Ballots must be a collection of lists, one ballot was {ballot}")
 
         def ballot_candidates(ballot):
             """Gets the set of candidates written in a a ballot.
@@ -190,16 +222,16 @@ class RankedChoiceBallotBox(BallotBox):
             """
             candidate_set = set()
             for item in ballot:
-                if isinstance(item, list):
-                    # If there is a list, it is a tie, so process it one element at a time.
-                     for elem in item:
+                if isinstance(item, set):
+                    # If there is a set, it is a tie, so process it one element at a time.
+                    for elem in item:
                         if elem in candidate_set:
-                            raise InvalidBallotDataException(f"Candidate {elem} appears multiple times in{ballot}")
+                            raise InvalidBallotDataException(f"Candidate {elem} appears multiple times in {ballot}")
                         candidate_set.add(elem)
                 else:
-                    # If it's not a list, we can just process one at a time.
+                    # If it's not a set, we can just process one at a time.
                     if item in candidate_set:
-                        raise InvalidBallotDataException(f"Candidate {item} appears multiple times in{ballot}")
+                        raise InvalidBallotDataException(f"Candidate {item} appears multiple times in {ballot}")
                     candidate_set.add(item)
             return candidate_set
 
@@ -217,17 +249,24 @@ class RankedChoiceBallotBox(BallotBox):
         for ballot in ballots:
             ballot_contents = ballot_candidates(ballot)
 
-            for vote_candidate in ballot_contents:
-                if vote_candidate not in candidate_set:
-                    raise InvalidBallotDataException(f"Ballot {ballot} contains candidate {vote_candidate}, " +
-                                                     f"which is not found in candidate set {candidate_set}")
-
-            if require_full_ballots:
-                if ballot_contents != candidate_set:
-                    raise InvalidBallotDataException(f"Requiring full ballots: ballot {ballot}" +
-                                                     f" did not contain all of {candidate_set}.")
+            if ballot_contents != candidate_set:
+                raise InvalidBallotDataException(f"Ballot {ballot} did not contain exactly {candidate_set}.")
 
         return ballots
+
+    def __convert_to_sets(self, ballots):
+        """Takes ballots, which may include single items at rankings which do not have ties, into a list of sets."""
+
+        def convert(ballot):
+            out = []
+            for item in ballot:
+                if isinstance(item, set):
+                    out.append(item)
+                else:
+                    out.append({item})
+            return out
+
+        return [convert(b) for b in ballots]
 
 
 class InvalidElectionDataException(Exception):
