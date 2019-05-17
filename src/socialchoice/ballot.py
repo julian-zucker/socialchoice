@@ -1,6 +1,6 @@
 import networkx as nx
 
-from pairwise_collapse import pairwise_collapse
+from pairwise_collapse.pairwise_collapse import pairwise_collapse
 
 
 class BallotBox:

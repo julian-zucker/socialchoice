@@ -8,7 +8,7 @@ import random
 import networkx as nx
 from more_itertools import flatten
 
-from ranking_completion_schemes import fill_uniformly
+from pairwise_collapse.ranking_completion_schemes import fill_uniformly
 
 
 def pairwise_collapse_by_voter(pairwise_votes_by_voter,
