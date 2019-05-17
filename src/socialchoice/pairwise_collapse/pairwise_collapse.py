@@ -8,13 +8,13 @@ import random
 import networkx as nx
 from more_itertools import flatten
 
-from pairwise_collapse.resolving_incompleteness import place_randomly
 
 
 def pairwise_collapse_by_voter(pairwise_votes_by_voter,
-                               candidates=None,
-                               upsample=False,
-                               ranking_completion_scheme=place_randomly):
+                               candidates,
+                               upsample,
+                               intransitivity_resolver,
+                               incompleteness_resolver):
     """Given a list of lists of pairwise votes, where each list corresponds to one voter's complete vote set,
     produces a list of rankings over the candidates.
 
@@ -22,7 +22,8 @@ def pairwise_collapse_by_voter(pairwise_votes_by_voter,
     :param candidates: the list of candidates, inferred from the pairwise votes if not provided. Recommended to provide
     for small vote sets if worried about not all candidates appearing at least once in the votes.
     :param upsample: whether to put in one ranking per voter (False) or one ranking per pairwise vote (True)
-    :param ranking_completion_scheme: one of "uniform", "elo", "bayesian": see
+    :param intransitivity_resolver: the function to be used to resolve intransitivites
+    :param incompleteness_resolver: the function to be used to resolve incompleteness
     :return:
     """
     candidates = candidates or set(flatten((vote[0], vote[1]) for vote in flatten(pairwise_votes_by_voter)))
@@ -31,9 +32,9 @@ def pairwise_collapse_by_voter(pairwise_votes_by_voter,
 
     for voter_votes in pairwise_votes_by_voter:
         if upsample:
-            rankings += pairwise_collapse_upsampling(voter_votes, candidates, ranking_completion_scheme)
+            rankings += pairwise_collapse_upsampling(voter_votes, candidates, intransitivity_resolver, incompleteness_resolver)
         else:
-            rankings.append(pairwise_collapse(voter_votes, candidates, ranking_completion_scheme))
+            rankings.append(pairwise_collapse(voter_votes, candidates, intransitivity_resolver, incompleteness_resolver))
 
     return rankings
 

@@ -1,7 +1,9 @@
 from itertools import combinations
 
 import networkx as nx
+from more_itertools import flatten
 
+import util
 from pairwise_collapse.pairwise_collapse import pairwise_collapse
 
 
@@ -63,6 +65,7 @@ class PairwiseBallotBox(BallotBox):
                            that were being voted on in this election.
         :raises InvalidVoteShapeException: if given any vote with length != 3
         """
+        votes = list(votes)
         self.ballots = self.__ensure_valid_votes(votes)
         self.candidates = candidates or self.__get_all_candidates_from_votes(self.ballots)
 
@@ -154,9 +157,6 @@ class PairwiseBallotBox(BallotBox):
 
         return matchups
 
-    def to_ranked_choice_ballot_box(self):
-        return RankedChoiceBallotBox(pairwise_collapse(self.ballots))
-
 
 class RankedChoiceBallotBox(BallotBox):
     def __init__(self, ballots, candidates=None):
@@ -177,23 +177,7 @@ class RankedChoiceBallotBox(BallotBox):
         # We want to convert to pairwise ballots because there's no use reimplementing the code in PairwiseBallotBox
         # for rankings, we can just convert a ranking to its constituent pairwise preferences and create our own
         # PairwiseBallotBox that we can forward requests for pairwise-result based rankings to.
-
-        # to convert to pairwise ballots, we'll have to look at each ranking
-        pairwise_ballots = []
-        for ranking in self.ballots_all_sets:
-            # and within each set in that ranking, all pairs of elements (combinations of size 2) are tied
-            for candidate_set in ranking:
-                for candidate1, candidate2 in combinations(candidate_set, 2):
-                    pairwise_ballots.append((candidate1, candidate2, "tie"))
-
-            # For each candidate set, and every candidate set after them in the ranking, the first set wins against
-            # each set in the second
-            for i, winner_candidate_set in enumerate(ranking):
-                for losing_candidate_set in ranking[i + 1:]:
-                    # (but because they are both sets, we have to iterate over each candidate in each)
-                    for winning_candidate in winner_candidate_set:
-                        for losing_candidate in losing_candidate_set:
-                            pairwise_ballots.append((winning_candidate, losing_candidate, "win"))
+        pairwise_ballots = flatten(util.ranking_to_pairwise_ballots(ballot) for ballot in self.ballots_all_sets)
 
         self.pairwise_ballot_box = PairwiseBallotBox(pairwise_ballots)
 
@@ -256,17 +240,7 @@ class RankedChoiceBallotBox(BallotBox):
 
     def __convert_to_sets(self, ballots):
         """Takes ballots, which may include single items at rankings which do not have ties, into a list of sets."""
-
-        def convert(ballot):
-            out = []
-            for item in ballot:
-                if isinstance(item, set):
-                    out.append(item)
-                else:
-                    out.append({item})
-            return out
-
-        return [convert(b) for b in ballots]
+        return [util.ranking_with_all_sets(b) for b in ballots]
 
 
 class InvalidElectionDataException(Exception):

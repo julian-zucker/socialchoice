@@ -6,10 +6,10 @@ from socialchoice import RankedChoiceBallotBox, Election
 @pytest.fixture
 def election():
     example_votes = RankedChoiceBallotBox([
-        [{1}, {2}, {3}, {4}],
-        [{1}, {3}, {2}, {4}],
-        [{1}, {2}, {3}, {4}],
-        [{1}, {2}, {4}, {3}]
+        [1, 2, 3, 4],
+        [1, 3, 2, 4],
+        [1, 2, 3, 4],
+        [1, 2, 4, 3]
     ])
     return Election(example_votes)
 
@@ -25,7 +25,6 @@ def test_ranked_pairs_on_ranked_choice(election):
 
 def test_copeland_on_ranked_choice(election):
     ranking = election.ranking_by_copeland(include_score=True)
-
     assert ranking == [(1, 3), (2, 1), (3, -1), (4, -3)]
 
     ranking_no_score = election.ranking_by_copeland()

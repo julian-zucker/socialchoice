@@ -1,9 +1,3 @@
-import random
-
-import pytest
-from hypothesis import given, note, strategies as st
-from more_itertools import flatten
-
 from pairwise_collapse.resolving_incompleteness import place_randomly
 from pairwise_collapse.resolving_intransitivity import break_random_link
 from socialchoice import *
