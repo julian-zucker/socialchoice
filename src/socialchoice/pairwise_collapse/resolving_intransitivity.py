@@ -23,51 +23,53 @@ def break_random_link(vote_set):
     return win_graph
 
 
-def break_weakest_link(vote_set):
-    """While there is a cycle, breaks the cycle by removing the weakest edge in it."""
-    win_graph = nx.DiGraph()
-    win_graph.add_edges_from((vote[0], vote[1]) for vote in vote_set)
+def make_break_weakest_link(edge_to_weight):
+    """Given a mapping from edges to weights, resolves intransitivity by picking cycles at random, and removing
+    the weakest edge in the chosen cycle. Eventually, there are no cycles left.
 
-    def weakest(edges):
-        raise NotImplementedError("TODO implement me")
+    :param edge_to_weight: a dictionary mapping (winner,loser) edges to weights (floats)
+    :return: a transitive vote graph
+    """
 
-    # Keep iterating until there are no cycles remaining
-    while True:
-        try:
-            cycle = nx.find_cycle(win_graph)
-            win_graph.remove_edge(*weakest(cycle[random.randrange(0, len(cycle))]))
-        except nx.NetworkXNoCycle:
-            break
+    def break_weakest_link(vote_set):
+        """While there is a cycle, breaks the cycle by removing the weakest edge in it."""
+        win_graph = nx.DiGraph()
+        win_graph.add_edges_from((vote[0], vote[1]) for vote in vote_set)
 
-    assert nx.is_directed_acyclic_graph(win_graph)
-    return win_graph
+        def weakest(edges):
+            return min(edges, key=lambda e: edge_to_weight[e])
+
+        # Keep iterating until there are no cycles remaining
+        while True:
+            try:
+                cycle = nx.find_cycle(win_graph)
+                win_graph.remove_edge(*weakest(cycle))
+            except nx.NetworkXNoCycle:
+                break
+
+        assert nx.is_directed_acyclic_graph(win_graph)
+        return win_graph
+
+    return break_weakest_link
 
 
-def add_edges_in_order(vote_set):
-    """Resolves any intransitivities in a set of votes."""
-    win_graph = nx.DiGraph()
+def make_add_edges_in_order(edge_to_weights):
+    def add_edges_in_order(vote_set):
+        """Adds edges in order of weight, never adding edges that would create a cycle."""
+        win_graph = nx.DiGraph()
 
-    shuffled_votes = random.sample(vote_set, len(vote_set))
-    for c1, c2, result in shuffled_votes:
-        # For now, ignore ties. This probably could be improved - ties do give us information
-        if result == "tie":
-            continue
+        ordered_votes = sorted(vote_set, key=lambda e: edge_to_weights[e[0], e[1]], reverse=True)
+        for c1, c2, result in ordered_votes:
+            try:
+                win_graph.add_edge(c1, c2)
+                cycles = nx.find_cycle(win_graph)
+                # If we hit this line, a NoCycle exception was not thrown, therefore there is a cycle and we have to
+                # remove an edge from it
+                win_graph.remove_edge(c1, c2)
+            except nx.NetworkXNoCycle:
+                continue
 
-        # Ensure that c1 is the victor and c2 the loser, by swapping if they are a loss
-        if result == "loss":
-            c1, c2 = c2, c1
+        assert nx.is_directed_acyclic_graph(win_graph)
+        return win_graph
 
-        win_graph.add_edge(c1, c2)
-
-    # convert to DAG by removing edges from every cycle
-    while True:
-        try:
-            cycles = nx.find_cycle(win_graph)
-            # If we hit this line, a NoCycle exception was not thrown, therefore there is a cycle and we have to
-            # remove an edge from it
-            win_graph.remove_edge(*cycles[random.randint(0, len(cycles) - 1)])
-        except nx.NetworkXNoCycle:
-            break
-
-    assert nx.is_directed_acyclic_graph(win_graph)
-    return win_graph
+    return add_edges_in_order

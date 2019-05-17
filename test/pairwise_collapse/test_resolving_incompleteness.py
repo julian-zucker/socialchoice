@@ -43,7 +43,7 @@ def test_add_all_at_end(win_graph, candidates_to_add):
 def test_add_random_edges(win_graph, candidates_to_add):
     results = list()
     for i in range(100):
-        results.append(place_randomly(win_graph, candidates_to_add))
+        results.append(add_random_edges(win_graph, candidates_to_add))
 
     rankings = {tuple(nx.topological_sort(wg)) for wg in results}
 

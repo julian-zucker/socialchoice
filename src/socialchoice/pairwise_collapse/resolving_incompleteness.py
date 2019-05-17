@@ -5,6 +5,7 @@ complete, fully connected, transitive win-graph."""
 import random
 
 import networkx as nx
+from more_itertools import flatten
 
 import util
 from ballot import PairwiseBallotBox
@@ -36,15 +37,21 @@ def add_random_edges(win_graph: nx.DiGraph, to_add: set) -> nx.DiGraph:
     """Chooses a random pair of nodes that aren’t connected to each other, and then connects them, never adding
     edges that would result in a cycle, until the graph is a complete win-graph.
     """
-    # FIXME this is a very, very inefficient algorithm, do something clever like keeping track of disconnected
-    #       pairs over time
+    win_graph = win_graph.copy()
     candidates = set(win_graph.nodes).union(to_add)
-    candidates_list = list(candidates)  # for random indexed selection
-    expected_number_of_neighbours = len(candidates) - 1  # the number of neighbours each node has if fully connected
-    while any(len(nx.neighbors(win_graph, n)) != expected_number_of_neighbours for n in candidates):
-        c1 = candidates_list[random.randrange(len(candidates_list))]
-        c2 = candidates_list[random.randrange(len(candidates_list))]
+    edge_list = []
+    for u in candidates:
+        for v in candidates:
+            if u != v:
+                edge_list.append((u, v))
 
+    random.shuffle(edge_list)
+
+    # Existing edges don't have to be checked
+    for edge in win_graph.edges:
+        edge_list.remove(edge)
+
+    for c1, c2 in edge_list:
         try:
             win_graph.add_edge(c1, c2)
             nx.find_cycle(win_graph)

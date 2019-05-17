@@ -1,7 +1,5 @@
 """
 Collapse pairwise votes into ranked choice votes.
-
-This task can be conceptually split into two: resolving intransitivity, and assuming the values of un-voted-on items.
 """
 
 import random
