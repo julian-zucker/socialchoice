@@ -77,7 +77,7 @@ def make_add_edges_by_win_ratio(edges_to_win_ratio):
     :return:
     """
 
-    edges_by_win_ratio = sorted(edges_to_win_ratio.keys(), key=lambda e: edges_to_win_ratio[e], reverse=True)
+    edges_by_win_ratio = sorted(edges_to_win_ratio, key=lambda e: edges_to_win_ratio[e], reverse=True)
 
     def add_edges_by_win_ratio(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
         """Adds edges into the win-graph in order of the win ratios of those matchups in the entire voting set,
@@ -95,7 +95,6 @@ def make_add_edges_by_win_ratio(edges_to_win_ratio):
         return win_graph
 
     return add_edges_by_win_ratio
-
 
 def _graph_to_ranking(g: nx.DiGraph) -> list:
     return list(nx.topological_sort(g))
