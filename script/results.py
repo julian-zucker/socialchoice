@@ -10,6 +10,7 @@ from pairwise_collapse.pairwise_collapse import pairwise_collapse_by_voter
 from pairwise_collapse.resolving_intransitivity import *
 from pairwise_collapse.resolving_incompleteness import *
 
+import multiprocessing
 
 def kendall_tau_distance(dataset,
                          intransitivity_resolver,
@@ -59,22 +60,21 @@ def kendall_tau_distance(dataset,
     ranking_election = Election(RankedChoiceBallotBox(ranked_choice_ballots))
 
     if social_choice_method == "ranked_pairs":
-        ranking1 = pairwise_election.ranking_by_ranked_pairs()
-        ranking2 = ranking_election.ranking_by_ranked_pairs()
+        pairwise_ranking = pairwise_election.ranking_by_ranked_pairs()
+        ranked_choice_ranking = ranking_election.ranking_by_ranked_pairs()
     elif social_choice_method == "win_ratio":
-        ranking1 = pairwise_election.ranking_by_win_ratio()
-        ranking2 = ranking_election.ranking_by_win_ratio()
+        pairwise_ranking = pairwise_election.ranking_by_win_ratio()
+        ranked_choice_ranking = ranking_election.ranking_by_win_ratio()
     elif social_choice_method == "minimax":
-        ranking1 = pairwise_election.ranking_by_minimax()
-        ranking2 = ranking_election.ranking_by_minimax()
+        pairwise_ranking = pairwise_election.ranking_by_minimax()
+        ranked_choice_ranking = ranking_election.ranking_by_minimax()
     else:
         raise ValueError(f"Invalid social_choice_method: {social_choice_method}")
 
-    print(ranking1)
-    print(ranking2)
-    tau = ranking_similarity.kendalls_tau(ranking1, ranking2)
+    print(pairwise_ranking)
+    print(ranked_choice_ranking)
+    tau = ranking_similarity.kendalls_tau(pairwise_ranking, ranked_choice_ranking)
     print(f"{intransitivity_resolver} {incompleteness_resolver} {upsampling_method} {social_choice_method}: tau={tau}")
-
 
 # The goal is that this file can be structured like:
 # kendall_tau_distance(dogs, break_random_link, place_randomly, upsampling="by_voter", "ranked_pairs")
@@ -106,8 +106,8 @@ if __name__ == "__main__":
     ]
 
     upsampling_methods = [
-        # "by_voter",
-        # "by_vote",
+        "by_voter",
+        "by_vote",
         "none",
     ]
 
@@ -116,12 +116,18 @@ if __name__ == "__main__":
         "win_ratio",
     ]
 
+
+    # The set of inputs to run kendall_tau_distance on is the cartesian product of the above arrays
+    inputs = []
     for dataset in datasets:
         for int_res in intransitivity_resolvers:
             for inc_res in incompleteness_resolvers:
                 for upsample in upsampling_methods:
                     for scm in social_choice_methods:
-                        kendall_tau_distance(dataset, int_res, inc_res, upsample, scm)
+                        inputs.append((dataset, int_res, inc_res, upsample, scm))
+
+    pool = multiprocessing.Pool(8)
+    out = pool.starmap(kendall_tau_distance, inputs)
 
 # ['57', '20', '65', '40', '37', '35', '70', '43', '45', '28', '34', '52', '54', '27', '24', '25', '51', '44', '48', '74', '56', '38', '72', '26', '68', '69']
 # ['57', '20', '65', '40', '37', '35', '70', '43', '45', '28', '34', '52', '54', '27', '24', '25', '51', '44', '48', '74', '56', '38', '72', '26', '68', '69']

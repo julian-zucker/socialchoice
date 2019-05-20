@@ -3,6 +3,7 @@
 Input is a (possibly) partial, but transitive win-graph, and a set of nodes to insert into that win-graph. The output is a
 complete, fully connected, transitive win-graph."""
 import random
+from functools import partial
 
 import networkx as nx
 
@@ -76,25 +77,26 @@ def make_add_edges_by_win_ratio(edges_to_win_ratio):
     :param edges_to_win_ratio: the list of edges as 2-tuples of (winner, loser), ordered by win rate, highest first
     :return:
     """
-
     edges_by_win_ratio = sorted(edges_to_win_ratio, key=lambda e: edges_to_win_ratio[e], reverse=True)
+    # Partial function instead of local definition so that result can be pickled
+    return partial(add_edges_by_win_ratio, edges_by_win_ratio)
 
-    def add_edges_by_win_ratio(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
-        """Adds edges into the win-graph in order of the win ratios of those matchups in the entire voting set,
-        only adding edges that will not create cycles."""
-        to_add = candidates.difference(set(win_graph.nodes))
-        for (c1, c2) in edges_by_win_ratio:
-            try:
-                win_graph.add_edge(c1, c2)
-                nx.find_cycle(win_graph)
-                win_graph.remove_edge(c1, c2)
-            except nx.NetworkXNoCycle:
-                pass
 
-        assert all(candidate in win_graph.nodes for candidate in to_add)
-        return win_graph
+def add_edges_by_win_ratio(edges_by_win_ratio, win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
+    """Adds edges into the win-graph in order of the win ratios of those matchups in the entire voting set,
+    only adding edges that will not create cycles."""
+    to_add = candidates.difference(set(win_graph.nodes))
+    for (c1, c2) in edges_by_win_ratio:
+        try:
+            win_graph.add_edge(c1, c2)
+            nx.find_cycle(win_graph)
+            win_graph.remove_edge(c1, c2)
+        except nx.NetworkXNoCycle:
+            pass
 
-    return add_edges_by_win_ratio
+    assert all(candidate in win_graph.nodes for candidate in to_add)
+    return win_graph
+
 
 def _graph_to_ranking(g: nx.DiGraph) -> list:
     return list(nx.topological_sort(g))

@@ -2,6 +2,7 @@
 
 Input is a intransitive win-graph, output is a transitive win-graph."""
 import random
+from functools import partial
 
 import networkx as nx
 
@@ -54,7 +55,11 @@ def make_break_weakest_link(edge_to_weight):
 
 
 def make_add_edges_in_order(edge_to_weights):
-    def add_edges_in_order(vote_set):
+    # Partial function instead of local definition so that result can be pickled
+    return partial(add_edges_in_order, edge_to_weights)
+
+
+def add_edges_in_order(edges_to_weights, vote_set):
         """Adds edges in order of weight, never adding edges that would create a cycle."""
         win_graph = nx.DiGraph()
         ordered_votes = sorted(vote_set, key=lambda e: edge_to_weights[(e[0], e[1])], reverse=True)
@@ -70,5 +75,3 @@ def make_add_edges_in_order(edge_to_weights):
 
         assert nx.is_directed_acyclic_graph(win_graph)
         return win_graph
-
-    return add_edges_in_order
