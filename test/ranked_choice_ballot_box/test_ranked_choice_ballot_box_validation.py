@@ -1,6 +1,10 @@
 import pytest
 
-from socialchoice import *
+from socialchoice import (
+    InvalidBallotDataException,
+    RankedChoiceBallotBox,
+    InvalidElectionDataException,
+)
 
 
 def test_no_candidate_repeats():

@@ -1,5 +1,6 @@
 import pytest
 
+
 from socialchoice.pairwisecollapse.resolving_intransitivity import *
 
 

@@ -1,3 +1,4 @@
+import networkx as nx
 import pytest
 
 from socialchoice.pairwisecollapse.resolving_incompleteness import *

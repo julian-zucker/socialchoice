@@ -1,6 +1,6 @@
 import pytest
 
-from socialchoice import *
+from socialchoice import PairwiseBallotBox, InvalidBallotDataException
 
 empty_votes = PairwiseBallotBox([])
 example_votes = PairwiseBallotBox(

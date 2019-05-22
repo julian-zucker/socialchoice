@@ -1,13 +1,8 @@
-import random
-
 import networkx as nx
-import pytest
-from hypothesis import given, note
+from hypothesis import given
 from hypothesis import strategies as st
 
-from socialchoice.ballot import PairwiseBallotBox
-from socialchoice.election import Election
-from socialchoice.ranking_similarity import num_inversions
+from socialchoice import PairwiseBallotBox
 from socialchoice.util import ranking_with_all_sets, ranking_to_pairwise_ballots
 
 

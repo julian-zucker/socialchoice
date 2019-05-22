@@ -3,6 +3,11 @@
 
 This library implements [social choice mechanisms](https://en.wikipedia.org/wiki/Social_choice_theory).
 
+#### Install
+socialchoice is on PyPI, so:
+``` 
+pip3 install socialchoice
+```
 
 #### A minimal example
 Here, we have two pairwise votes submitted, where `"a"` beat `"b"`, and `"c"` lost to `"b"`. We want to compute the [ranked pairs](https://en.wikipedia.org/wiki/Ranked_pairs) result for this vote set.

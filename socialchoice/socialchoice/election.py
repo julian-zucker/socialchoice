@@ -2,7 +2,7 @@ import functools
 
 import networkx as nx
 
-from socialchoice.ballot import BallotBox
+from socialchoice import BallotBox
 
 
 def optional_score(ranking_method):

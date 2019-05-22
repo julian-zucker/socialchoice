@@ -6,9 +6,6 @@ This allows us to factor out the package into multiple files while keeping a con
 """
 
 from socialchoice.ballot import *
+from socialchoice.election import *
 
-from socialchoice.election import Election
-
-import socialchoice.pairwisecollapse.pairwise_collapse as pairwise_collapse
-
-import socialchoice.util
+import socialchoice.pairwisecollapse as pairwise_collapse

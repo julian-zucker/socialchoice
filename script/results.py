@@ -2,9 +2,9 @@
 import csv
 import random
 
-import ranking_similarity
-from ballot import RankedChoiceBallotBox
-from election import Election
+from socialchoice import ranking_similarity
+from socialchoice import RankedChoiceBallotBox
+from socialchoice import Election
 from pairwise_collapse.resolving_intransitivity import *
 from pairwise_collapse.resolving_incompleteness import *
 

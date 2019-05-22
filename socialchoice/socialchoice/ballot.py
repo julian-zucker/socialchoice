@@ -1,7 +1,7 @@
 import networkx as nx
 from more_itertools import flatten
 
-import socialchoice.util as util
+from socialchoice import util
 
 
 class BallotBox:
