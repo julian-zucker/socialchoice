@@ -7,12 +7,13 @@ import networkx as nx
 from more_itertools import flatten
 
 
-
-def pairwise_collapse_by_voter(pairwise_votes_by_voter,
-                               candidates,
-                               upsample,
-                               intransitivity_resolver,
-                               incompleteness_resolver):
+def pairwise_collapse_by_voter(
+    pairwise_votes_by_voter,
+    candidates,
+    upsample,
+    intransitivity_resolver,
+    incompleteness_resolver,
+):
     """Given a list of lists of pairwise votes, where each list corresponds to one voter's complete vote set,
     produces a list of rankings over the candidates.
 
@@ -24,20 +25,36 @@ def pairwise_collapse_by_voter(pairwise_votes_by_voter,
     :param incompleteness_resolver: the function to be used to resolve incompleteness
     :return:
     """
-    candidates = candidates or set(flatten((vote[0], vote[1]) for vote in flatten(pairwise_votes_by_voter)))
+    candidates = candidates or set(
+        flatten((vote[0], vote[1]) for vote in flatten(pairwise_votes_by_voter))
+    )
 
     rankings = []
 
     for voter_votes in pairwise_votes_by_voter:
         if upsample:
-            rankings += pairwise_collapse_upsampling(voter_votes, candidates, intransitivity_resolver, incompleteness_resolver)
+            rankings += pairwise_collapse_upsampling(
+                voter_votes,
+                candidates,
+                intransitivity_resolver,
+                incompleteness_resolver,
+            )
         else:
-            rankings.append(pairwise_collapse(voter_votes, candidates, intransitivity_resolver, incompleteness_resolver))
+            rankings.append(
+                pairwise_collapse(
+                    voter_votes,
+                    candidates,
+                    intransitivity_resolver,
+                    incompleteness_resolver,
+                )
+            )
 
     return rankings
 
 
-def pairwise_collapse(pairwise_votes, candidates, intransitivity_resolver, incompleteness_resolver) -> list:
+def pairwise_collapse(
+    pairwise_votes, candidates, intransitivity_resolver, incompleteness_resolver
+) -> list:
     """Converts a set of pairwise votes into a ranking or list of rankings over all of the candidates.
     Returns a single ranking if `upsample` is falsy, and a list of rankings with length `len(pairwise_votes)
     if `upsample` is truthy. """
@@ -45,9 +62,14 @@ def pairwise_collapse(pairwise_votes, candidates, intransitivity_resolver, incom
     return insert_unvoted_items(incompleteness_resolver, transitive_votes, candidates)
 
 
-def pairwise_collapse_upsampling(pairwise_votes, candidates, intransitivity_resolver, incompleteness_resolver):
+def pairwise_collapse_upsampling(
+    pairwise_votes, candidates, intransitivity_resolver, incompleteness_resolver
+):
     transitive_votes = [intransitivity_resolver(pairwise_votes)] * len(pairwise_votes)
-    return [insert_unvoted_items(incompleteness_resolver, v, candidates) for v in transitive_votes]
+    return [
+        insert_unvoted_items(incompleteness_resolver, v, candidates)
+        for v in transitive_votes
+    ]
 
 
 def insert_unvoted_items(insertion_scheme, partial_ranking, candidates):

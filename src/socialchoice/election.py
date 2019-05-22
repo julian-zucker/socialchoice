@@ -37,7 +37,6 @@ def optional_score(ranking_method):
                 current_tie = [(item, score)]
         return out
 
-
     @functools.wraps(ranking_method)
     def wrapped_ranking_method(self, include_score=False, group_ties=False):
         ranking = ranking_method(self)
@@ -47,7 +46,9 @@ def optional_score(ranking_method):
         elif include_score and not group_ties:
             return ranking
         elif not include_score and group_ties:
-            return [item for tie_group in nest_ties(ranking) for item, score in tie_group]
+            return [
+                item for tie_group in nest_ties(ranking) for item, score in tie_group
+            ]
         elif not include_score and not group_ties:
             return [item for item, score in ranking]
 
@@ -82,13 +83,22 @@ class Election:
     @optional_score
     def ranking_by_copeland(self) -> list:
         g = self.ballot_box.get_victory_graph()
-        result = sorted([(n, g.out_degree(n) - g.in_degree(n)) for n in g.nodes], key=lambda x: x[1], reverse=True)
+        result = sorted(
+            [(n, g.out_degree(n) - g.in_degree(n)) for n in g.nodes],
+            key=lambda x: x[1],
+            reverse=True,
+        )
         return result
 
     @optional_score
     def ranking_by_minimax(self) -> list:
         g = self.ballot_box.get_matchup_graph()
-        return sorted(g.nodes, key=lambda n: max(g.get_edge_data(u, v)["margin"] for u, v in g.in_edges(n)))
+        return sorted(
+            g.nodes,
+            key=lambda n: max(
+                g.get_edge_data(u, v)["margin"] for u, v in g.in_edges(n)
+            ),
+        )
 
     @optional_score
     def ranking_by_win_ratio(self) -> list:
@@ -103,8 +113,10 @@ class Election:
                 wins_and_ties_vs_losses[candidate][0] += wins
                 wins_and_ties_vs_losses[candidate][1] += losses
 
-        ratios = [(candidate, (x[0] / ((x[0] + x[1]) or float("inf"))))
-                  for candidate, x in wins_and_ties_vs_losses.items()]
+        ratios = [
+            (candidate, (x[0] / ((x[0] + x[1]) or float("inf"))))
+            for candidate, x in wins_and_ties_vs_losses.items()
+        ]
         return sorted(ratios, key=lambda x: x[1], reverse=True)
 
     @optional_score
@@ -121,6 +133,8 @@ class Election:
                 wins_and_ties_vs_losses[candidate][0] += wins + ties
                 wins_and_ties_vs_losses[candidate][1] += losses
 
-        ratios = [(candidate, (x[0] / ((x[0] + x[1]) or float("inf"))))
-                  for candidate, x in wins_and_ties_vs_losses.items()]
+        ratios = [
+            (candidate, (x[0] / ((x[0] + x[1]) or float("inf"))))
+            for candidate, x in wins_and_ties_vs_losses.items()
+        ]
         return sorted(ratios, key=lambda x: x[1], reverse=True)

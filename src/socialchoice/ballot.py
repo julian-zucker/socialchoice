@@ -61,30 +61,34 @@ class PairwiseBallotBox(BallotBox):
         Creates a new PairwiseBallotBox. This shows that
 
         :param votes: An array of votes, where a vote is any indexable object of length 3
-        :param candidates: None, meaning to infer the candidate set from the votes, or a collection of the candidates
-                           that were being voted on in this election.
+        :param candidates: None, meaning to infer the candidate set from the votes, or a
+                           collection of the candidates that were being voted on in this election.
         :raises InvalidVoteShapeException: if given any vote with length != 3
         """
         votes = list(votes)
         self.ballots = self.__ensure_valid_votes(votes)
-        self.candidates = candidates or self.__get_all_candidates_from_votes(self.ballots)
+        self.candidates = candidates or self.__get_all_candidates_from_votes(
+            self.ballots
+        )
 
     @staticmethod
     def __get_all_candidates_from_votes(votes) -> set:
-        """
-        :return: All the candidates mentioned in the votes
-        """
+        """:return: All the candidates mentioned in the votes"""
         return {vote[0] for vote in votes} | {vote[1] for vote in votes}
 
     @staticmethod
     def __ensure_valid_votes(votes: iter) -> list:
         for vote in votes:
             if not len(vote) == 3:
-                raise InvalidBallotDataException("Expected a vote of length three, got " + str(vote))
+                raise InvalidBallotDataException(
+                    "Expected a vote of length three, got " + str(vote)
+                )
 
             if not vote[2] in {"win", "loss", "tie"}:
                 raise InvalidBallotDataException(
-                    """Expected type to be one of {"win", "loss", "tie"}, got""" + str(vote))
+                    """Expected type to be one of {"win", "loss", "tie"}, got"""
+                    + str(vote)
+                )
 
         return list(votes)
 
@@ -114,20 +118,26 @@ class PairwiseBallotBox(BallotBox):
                 candidate1to2 = matchups[candidate1][candidate2]
                 total_votes_candidate1to2 = sum(candidate1to2.values())
                 if total_votes_candidate1to2 != 0:
-                    g.add_edge(candidate1, candidate2,
-                               wins=candidate1to2["wins"],
-                               losses=candidate1to2["losses"],
-                               ties=candidate1to2["ties"],
-                               margin=candidate1to2["wins"] / total_votes_candidate1to2)
+                    g.add_edge(
+                        candidate1,
+                        candidate2,
+                        wins=candidate1to2["wins"],
+                        losses=candidate1to2["losses"],
+                        ties=candidate1to2["ties"],
+                        margin=candidate1to2["wins"] / total_votes_candidate1to2,
+                    )
 
                 candidate2to1 = matchups[candidate2][candidate1]
                 total_votes_candidate2to1 = sum(candidate2to1.values())
                 if total_votes_candidate2to1 != 0:
-                    g.add_edge(candidate2, candidate1,
-                               wins=candidate2to1["wins"],
-                               losses=candidate2to1["losses"],
-                               ties=candidate2to1["ties"],
-                               margin=candidate2to1["wins"] / total_votes_candidate2to1)
+                    g.add_edge(
+                        candidate2,
+                        candidate1,
+                        wins=candidate2to1["wins"],
+                        losses=candidate2to1["losses"],
+                        ties=candidate2to1["ties"],
+                        margin=candidate2to1["wins"] / total_votes_candidate2to1,
+                    )
 
         return g
 
@@ -160,12 +170,13 @@ class PairwiseBallotBox(BallotBox):
 
 class RankedChoiceBallotBox(BallotBox):
     def __init__(self, ballots, candidates=None):
-        """Creates a RankedChoiceBallotBox from the given ballots. Each ballot must be a list, where each element
-        is either a candidate or a set of candidates. A single candidate in a ballot represents that candidate
-        being at that position, and a set represents a tie for that position.
+        """Creates a RankedChoiceBallotBox from the given ballots. Each ballot must be a list, where
+        each element is either a candidate or a set of candidates. A single candidate in a ballot
+        represents that candidate being at that position, and a set represents a tie for that
+        position.
 
-        Each ballot must contain every candidate found in candidates, or if candidates is not provided, the
-        candidates mentioned in every other ballot.
+        Each ballot must contain every candidate found in candidates, or if candidates is not
+        provided, the candidates mentioned in every other ballot.
 
         :param ballots: a list of ballots, as described above.
         :param candidates: the set of candidates being voted on. Inferred from ballots if not provided.
@@ -177,7 +188,9 @@ class RankedChoiceBallotBox(BallotBox):
         # We want to convert to pairwise ballots because there's no use reimplementing the code in PairwiseBallotBox
         # for rankings, we can just convert a ranking to its constituent pairwise preferences and create our own
         # PairwiseBallotBox that we can forward requests for pairwise-result based rankings to.
-        pairwise_ballots = flatten(util.ranking_to_pairwise_ballots(ballot) for ballot in self.ballots_all_sets)
+        pairwise_ballots = flatten(
+            util.ranking_to_pairwise_ballots(ballot) for ballot in self.ballots_all_sets
+        )
 
         self.pairwise_ballot_box = PairwiseBallotBox(pairwise_ballots)
 
@@ -192,19 +205,23 @@ class RankedChoiceBallotBox(BallotBox):
 
     def __ensure_valid_ballots(self, ballots, candidates):
         if not len(ballots):
-            raise InvalidBallotDataException("Cannot create RankedChoiceBallotBox with empty ballot list")
+            raise InvalidBallotDataException(
+                "Cannot create RankedChoiceBallotBox with empty ballot list"
+            )
         for ballot in ballots:
             if not isinstance(ballot, list):
                 raise InvalidBallotDataException(
-                    f"Ballots must be a collection of lists, one ballot was {ballot}")
-
+                    f"Ballots must be a collection of lists, one ballot was {ballot}"
+                )
 
         # Need to either get or infer the candidate set to validate that ballots are full, and to ensure that each
         # ballot doesn't contain elements not in the candidate set.
         if candidates:
             candidate_set = set(candidates)
             if not len(candidates) == len(candidate_set):
-                raise InvalidElectionDataException(f"Duplicate candidates in {candidates}")
+                raise InvalidElectionDataException(
+                    f"Duplicate candidates in {candidates}"
+                )
         else:
             candidate_set = set()
             for ballot in ballots:
@@ -220,7 +237,9 @@ class RankedChoiceBallotBox(BallotBox):
                 raise InvalidBallotDataException(e)
 
             if ballot_contents != candidate_set:
-                raise InvalidBallotDataException(f"Ballot {ballot} did not contain exactly {candidate_set}.")
+                raise InvalidBallotDataException(
+                    f"Ballot {ballot} did not contain exactly {candidate_set}."
+                )
 
         return ballots
 

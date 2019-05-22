@@ -3,20 +3,21 @@ import csv
 import random
 
 import ranking_similarity
-import util
-from ballot import PairwiseBallotBox, RankedChoiceBallotBox
+from ballot import RankedChoiceBallotBox
 from election import Election
-from pairwise_collapse.pairwise_collapse import pairwise_collapse_by_voter
 from pairwise_collapse.resolving_intransitivity import *
 from pairwise_collapse.resolving_incompleteness import *
 
 import multiprocessing
 
-def kendall_tau_distance(dataset,
-                         intransitivity_resolver,
-                         incompleteness_resolver,
-                         upsampling_method,
-                         social_choice_method):
+
+def kendall_tau_distance(
+    dataset,
+    intransitivity_resolver,
+    incompleteness_resolver,
+    upsampling_method,
+    social_choice_method,
+):
     """Computes the Kendall tau distance between original pairwise votes from a dataset and the collapsed rankings.
     Uses the Kendall tau on the output of the specified social choice method.
 
@@ -52,11 +53,15 @@ def kendall_tau_distance(dataset,
         if upsampling_method == "by_vote":
             # We need to put in one ranking per vote in the voter's vote set, but we repeat the ranking to avoid
             # expensive recomputation of the incompleteness resolver
-            complete_vote_sets += [incompleteness_resolver(vote_graph, candidates)] * len(vote_graph)
+            complete_vote_sets += [incompleteness_resolver(vote_graph, candidates)] * len(
+                vote_graph
+            )
         else:
             complete_vote_sets.append(incompleteness_resolver(vote_graph, candidates))
 
-    ranked_choice_ballots = [list(nx.topological_sort(win_graph)) for win_graph in complete_vote_sets]
+    ranked_choice_ballots = [
+        list(nx.topological_sort(win_graph)) for win_graph in complete_vote_sets
+    ]
     ranking_election = Election(RankedChoiceBallotBox(ranked_choice_ballots))
 
     if social_choice_method == "ranked_pairs":
@@ -74,66 +79,57 @@ def kendall_tau_distance(dataset,
     print(pairwise_ranking)
     print(ranked_choice_ranking)
     tau = ranking_similarity.kendalls_tau(pairwise_ranking, ranked_choice_ranking)
-    print(f"{intransitivity_resolver} {incompleteness_resolver} {upsampling_method} {social_choice_method}: tau={tau}")
+    print(
+        f"{intransitivity_resolver} {incompleteness_resolver} {upsampling_method} {social_choice_method}: tau={tau}"
+    )
+
 
 # The goal is that this file can be structured like:
 # kendall_tau_distance(dogs, break_random_link, place_randomly, upsampling="by_voter", "ranked_pairs")
 # repeated for each value required in the table.
 
+
 if __name__ == "__main__":
     with open("../data/dog_project_votes.csv") as csv_fd:
-        votes = [row for row in csv.reader(csv_fd)]
+        dog_project_votes = [row for row in csv.reader(csv_fd)]
 
-    wg = PairwiseBallotBox([v[0:3] for v in votes]).get_matchup_graph()
+    wg = PairwiseBallotBox([v[0:3] for v in dog_project_votes]).get_matchup_graph()
     edge_to_weight = {e: wg.get_edge_data(*e)["margin"] for e in wg.edges}
-
-    datasets = [
-        votes
-    ]
+    vote_sets = [dog_project_votes]
 
     intransitivity_resolvers = [
         break_random_link,
-        # make_break_weakest_link(edge_to_weight),
+        make_break_weakest_link(edge_to_weight),
         make_add_edges_in_order(edge_to_weight),
     ]
 
     incompleteness_resolvers = [
         place_randomly,
-        # add_all_at_beginning,
-        # add_all_at_end,
-        # add_random_edges,
+        add_all_at_beginning,
+        add_all_at_end,
+        add_random_edges,
         make_add_edges_by_win_ratio(edge_to_weight),
     ]
 
     upsampling_methods = [
         "by_voter",
         "by_vote",
-        "none",
+        # "none",
     ]
 
     social_choice_methods = [
         "ranked_pairs",
-        "win_ratio",
+        # "win_ratio",
     ]
-
 
     # The set of inputs to run kendall_tau_distance on is the cartesian product of the above arrays
     inputs = []
-    for dataset in datasets:
+    for vote_set in vote_sets:
         for int_res in intransitivity_resolvers:
             for inc_res in incompleteness_resolvers:
                 for upsample in upsampling_methods:
                     for scm in social_choice_methods:
-                        inputs.append((dataset, int_res, inc_res, upsample, scm))
+                        inputs.append((vote_set, int_res, inc_res, upsample, scm))
 
     pool = multiprocessing.Pool(8)
     out = pool.starmap(kendall_tau_distance, inputs)
-
-# ['57', '20', '65', '40', '37', '35', '70', '43', '45', '28', '34', '52', '54', '27', '24', '25', '51', '44', '48', '74', '56', '38', '72', '26', '68', '69']
-# ['57', '20', '65', '40', '37', '35', '70', '43', '45', '28', '34', '52', '54', '27', '24', '25', '51', '44', '48', '74', '56', '38', '72', '26', '68', '69']
-# <add_edges_in_order add_edges_by_win_ratio by_voter ranked_pairs:
-# tau=KendalltauResult(correlation=1.0, pvalue=4.9591925264495945e-27)
-# ['57', '20', '65', '40', '70', '37', '35', '43', '45', '34', '52', '28', '25', '54', '27', '24', '51', '44', '48', '38', '56', '74', '72', '26', '68', '69']
-# ['20', '57', '65', '40', '37', '70', '35', '43', '45', '34', '52', '28', '25', '54', '27', '24', '51', '44', '48', '74', '56', '38', '72', '26', '68', '69']
-# add_edges_in_order add_edges_by_win_ratio by_voter win_ratio:
-# tau=KendalltauResult(correlation=0.9692307692307693, pvalue=6.885987598751056e-22)

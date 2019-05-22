@@ -54,24 +54,27 @@ def break_weakest_link(edge_to_weight, vote_set):
     assert nx.is_directed_acyclic_graph(win_graph)
     return win_graph
 
+
 def make_add_edges_in_order(edge_to_weights):
     # Partial function instead of local definition so that result can be pickled
     return partial(add_edges_in_order, edge_to_weights)
 
 
 def add_edges_in_order(edge_to_weights, vote_set):
-        """Adds edges in order of weight, never adding edges that would create a cycle."""
-        win_graph = nx.DiGraph()
-        ordered_votes = sorted(vote_set, key=lambda e: edge_to_weights[(e[0], e[1])], reverse=True)
-        for c1, c2, result in ordered_votes:
-            try:
-                win_graph.add_edge(c1, c2)
-                cycles = nx.find_cycle(win_graph)
-                # If we hit this line, a NoCycle exception was not thrown, therefore there is a cycle and we have to
-                # remove an edge from it
-                win_graph.remove_edge(c1, c2)
-            except nx.NetworkXNoCycle:
-                continue
+    """Adds edges in order of weight, never adding edges that would create a cycle."""
+    win_graph = nx.DiGraph()
+    ordered_votes = sorted(
+        vote_set, key=lambda e: edge_to_weights[(e[0], e[1])], reverse=True
+    )
+    for c1, c2, result in ordered_votes:
+        try:
+            win_graph.add_edge(c1, c2)
+            cycles = nx.find_cycle(win_graph)
+            # If we hit this line, a NoCycle exception was not thrown, therefore there is a cycle and we have to
+            # remove an edge from it
+            win_graph.remove_edge(c1, c2)
+        except nx.NetworkXNoCycle:
+            continue
 
-        assert nx.is_directed_acyclic_graph(win_graph)
-        return win_graph
+    assert nx.is_directed_acyclic_graph(win_graph)
+    return win_graph

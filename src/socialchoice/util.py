@@ -1,7 +1,6 @@
 from itertools import combinations
 
 
-
 def ranking_with_all_sets(r):
     out = []
     for item in r:
@@ -24,11 +23,13 @@ def ranking_to_pairwise_ballots(ranking):
     # For each candidate set, and every candidate set after them in the ranking, the first set wins against
     # each set in the second
     for i, winner_candidate_set in enumerate(ranking):
-        for losing_candidate_set in ranking[i + 1:]:
+        for losing_candidate_set in ranking[i + 1 :]:
             # (but because they are both sets, we have to iterate over each candidate in each)
             for winning_candidate in winner_candidate_set:
                 for losing_candidate in losing_candidate_set:
-                    pairwise_ballots.append((winning_candidate, losing_candidate, "win"))
+                    pairwise_ballots.append(
+                        (winning_candidate, losing_candidate, "win")
+                    )
 
     return pairwise_ballots
 
@@ -40,7 +41,9 @@ def candidates_in_ranked_choice_ballot(ballot):
             # If there is a set, it is a tie, so process it one element at a time.
             for elem in item:
                 if elem in candidate_set:
-                    raise ValueError(f"Candidate {elem} appears multiple times in {ballot}")
+                    raise ValueError(
+                        f"Candidate {elem} appears multiple times in {ballot}"
+                    )
                 candidate_set.add(elem)
         else:
             # If it's not a set, we can just process one at a time.

@@ -21,10 +21,10 @@ def kendalls_tau(ranking1, ranking2):
     ranks1 = ranks_of_candidates(ranking1)
     ranks2 = ranks_of_candidates(ranking2)
 
-
     x = [ranks1[item] for item in ranking1]
     y = [ranks2[item] for item in ranking1]
     return scipy.stats.kendalltau(x, y)
+
 
 def num_inversions(ranking1, ranking2):
     """This is a measure of how far apart two rankings are, by the number of inversions. An inversion is a
@@ -36,11 +36,13 @@ def num_inversions(ranking1, ranking2):
     ranking2 = list(ranking2)
 
     if set(ranking1) != set(ranking2):
-        raise ValueError(f"Rankings must contain same elements, {ranking1} and {ranking2} differ")
+        raise ValueError(
+            f"Rankings must contain same elements, {ranking1} and {ranking2} differ"
+        )
 
     inversions = 0
     for index, item1 in enumerate(ranking1):
-        for item2 in ranking1[index + 1:]:
+        for item2 in ranking1[index + 1 :]:
             if ranking2.index(item1) >= ranking2.index(item2):
                 inversions += 1
 

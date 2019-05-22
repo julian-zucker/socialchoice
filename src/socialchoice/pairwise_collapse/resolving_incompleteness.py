@@ -41,8 +41,8 @@ def add_all_at_end(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
 
 
 def add_random_edges(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
-    """Chooses a random pair of nodes that aren’t connected to each other, and then connects them, never adding
-    edges that would result in a cycle, until the graph is a complete win-graph.
+    """Chooses a random pair of nodes that aren’t connected to each other, and then connects them,
+    never adding edges that would result in a cycle, until the graph is a complete win-graph.
     """
     to_add = candidates.difference(set(win_graph.nodes))
     win_graph = win_graph.copy()
@@ -71,18 +71,24 @@ def add_random_edges(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
 
 
 def make_add_edges_by_win_ratio(edges_to_win_ratio):
-    """Given a list of edges by win ratio, creates a function that will resolve incompleteness by adding
-    non-cycle-creating edges from the list until the graph is complete.
+    """Given a list of edges by win ratio, creates a function that will resolve incompleteness by
+    adding non-cycle-creating edges from the list until the graph is complete.
 
-    :param edges_to_win_ratio: the list of edges as 2-tuples of (winner, loser), ordered by win rate, highest first
+    :param edges_to_win_ratio: the list of edges as 2-tuples of (winner, loser),
+                               
+    ordered by win rate, highest first
     :return:
     """
-    edges_by_win_ratio = sorted(edges_to_win_ratio, key=lambda e: edges_to_win_ratio[e], reverse=True)
+    edges_by_win_ratio = sorted(
+        edges_to_win_ratio, key=lambda e: edges_to_win_ratio[e], reverse=True
+    )
     # Partial function instead of local definition so that result can be pickled
     return partial(add_edges_by_win_ratio, edges_by_win_ratio)
 
 
-def add_edges_by_win_ratio(edges_by_win_ratio, win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
+def add_edges_by_win_ratio(
+    edges_by_win_ratio, win_graph: nx.DiGraph, candidates: set
+) -> nx.DiGraph:
     """Adds edges into the win-graph in order of the win ratios of those matchups in the entire voting set,
     only adding edges that will not create cycles."""
     to_add = candidates.difference(set(win_graph.nodes))
