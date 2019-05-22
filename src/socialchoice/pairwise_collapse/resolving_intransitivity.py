@@ -31,35 +31,35 @@ def make_break_weakest_link(edge_to_weight):
     :param edge_to_weight: a dictionary mapping (winner,loser) edges to weights (floats)
     :return: a transitive vote graph
     """
+    # Partial function instead of local definition so that result can be pickled
+    return partial(break_weakest_link, edge_to_weight)
 
-    def break_weakest_link(vote_set):
-        """While there is a cycle, breaks the cycle by removing the weakest edge in it."""
-        win_graph = nx.DiGraph()
-        win_graph.add_edges_from((vote[0], vote[1]) for vote in vote_set)
 
-        def weakest(edges):
-            return min(edges, key=lambda e: edge_to_weight[e])
+def break_weakest_link(edge_to_weight, vote_set):
+    """While there is a cycle, breaks the cycle by removing the weakest edge in it."""
+    win_graph = nx.DiGraph()
+    win_graph.add_edges_from((vote[0], vote[1]) for vote in vote_set)
 
-        # Keep iterating until there are no cycles remaining
-        while True:
-            try:
-                cycle = nx.find_cycle(win_graph)
-                win_graph.remove_edge(*weakest(cycle))
-            except nx.NetworkXNoCycle:
-                break
+    def weakest(edges):
+        return min(edges, key=lambda e: edge_to_weight[e])
 
-        assert nx.is_directed_acyclic_graph(win_graph)
-        return win_graph
+    # Keep iterating until there are no cycles remaining
+    while True:
+        try:
+            cycle = nx.find_cycle(win_graph)
+            win_graph.remove_edge(*weakest(cycle))
+        except nx.NetworkXNoCycle:
+            break
 
-    return break_weakest_link
-
+    assert nx.is_directed_acyclic_graph(win_graph)
+    return win_graph
 
 def make_add_edges_in_order(edge_to_weights):
     # Partial function instead of local definition so that result can be pickled
     return partial(add_edges_in_order, edge_to_weights)
 
 
-def add_edges_in_order(edges_to_weights, vote_set):
+def add_edges_in_order(edge_to_weights, vote_set):
         """Adds edges in order of weight, never adding edges that would create a cycle."""
         win_graph = nx.DiGraph()
         ordered_votes = sorted(vote_set, key=lambda e: edge_to_weights[(e[0], e[1])], reverse=True)
