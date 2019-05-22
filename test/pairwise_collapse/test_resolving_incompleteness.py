@@ -1,7 +1,7 @@
 import pytest
 
-from pairwise_collapse.resolving_incompleteness import *
-from pairwise_collapse.resolving_incompleteness import _ranking_to_graph
+from socialchoice.pairwisecollapse.resolving_incompleteness import *
+from socialchoice.pairwisecollapse.resolving_incompleteness import _ranking_to_graph
 
 
 @pytest.fixture

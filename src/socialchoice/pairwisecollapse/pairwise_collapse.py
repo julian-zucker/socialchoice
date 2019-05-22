@@ -2,10 +2,6 @@
 Collapse pairwise votes into ranked choice votes.
 """
 
-import random
-import networkx as nx
-from more_itertools import flatten
-
 
 def pairwise_collapse(
     pairwise_votes, candidates, intransitivity_resolver, incompleteness_resolver

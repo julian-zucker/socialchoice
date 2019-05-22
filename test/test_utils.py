@@ -5,10 +5,10 @@ import pytest
 from hypothesis import given, note
 from hypothesis import strategies as st
 
-from ballot import PairwiseBallotBox
-from election import Election
-from ranking_similarity import num_inversions
-from util import ranking_with_all_sets, ranking_to_pairwise_ballots
+from socialchoice.ballot import PairwiseBallotBox
+from socialchoice.election import Election
+from socialchoice.ranking_similarity import num_inversions
+from socialchoice.util import ranking_with_all_sets, ranking_to_pairwise_ballots
 
 
 def test_ranking_with_all_sets():

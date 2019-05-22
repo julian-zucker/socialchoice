@@ -1,10 +1,7 @@
-from itertools import combinations
-
 import networkx as nx
 from more_itertools import flatten
 
-import util
-from pairwise_collapse.pairwise_collapse import pairwise_collapse
+import socialchoice.util as util
 
 
 class BallotBox:

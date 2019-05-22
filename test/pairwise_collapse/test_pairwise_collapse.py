@@ -1,8 +1,8 @@
 import pytest
 
-from pairwise_collapse.resolving_incompleteness import place_randomly
-from pairwise_collapse.resolving_intransitivity import break_random_link
 from socialchoice import *
+from socialchoice.pairwisecollapse.resolving_intransitivity import break_random_link
+from socialchoice.pairwisecollapse.resolving_incompleteness import place_randomly
 
 
 def assert_same_rankings(ballot_box_1: BallotBox, ballot_box_2: BallotBox):

@@ -3,7 +3,7 @@ import random
 import pytest
 from hypothesis import given, note, strategies as st
 
-from ranking_similarity import num_inversions
+from socialchoice.ranking_similarity import num_inversions
 
 
 def test_num_inversions():

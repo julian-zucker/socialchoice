@@ -7,12 +7,12 @@ from functools import partial
 
 import networkx as nx
 
-import util
-from ballot import PairwiseBallotBox
+from socialchoice import util
+from socialchoice import PairwiseBallotBox
 
 # TODO this file has duplicate code in each of the functions, converting candidates to `to_add`
 #      and also roundtripping to rankings
-from util import candidates_in_ranked_choice_ballot
+from socialchoice.util import candidates_in_ranked_choice_ballot
 
 
 def place_randomly(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:

@@ -1,6 +1,6 @@
 import pytest
 
-from pairwise_collapse.resolving_intransitivity import *
+from socialchoice.pairwisecollapse.resolving_intransitivity import *
 
 
 @pytest.fixture
