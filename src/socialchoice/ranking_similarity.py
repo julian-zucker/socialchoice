@@ -36,9 +36,7 @@ def num_inversions(ranking1, ranking2):
     ranking2 = list(ranking2)
 
     if set(ranking1) != set(ranking2):
-        raise ValueError(
-            f"Rankings must contain same elements, {ranking1} and {ranking2} differ"
-        )
+        raise ValueError(f"Rankings must contain same elements, {ranking1} and {ranking2} differ")
 
     inversions = 0
     for index, item1 in enumerate(ranking1):

@@ -46,9 +46,7 @@ def optional_score(ranking_method):
         elif include_score and not group_ties:
             return ranking
         elif not include_score and group_ties:
-            return [
-                item for tie_group in nest_ties(ranking) for item, score in tie_group
-            ]
+            return [item for tie_group in nest_ties(ranking) for item, score in tie_group]
         elif not include_score and not group_ties:
             return [item for item, score in ranking]
 
@@ -94,10 +92,7 @@ class Election:
     def ranking_by_minimax(self) -> list:
         g = self.ballot_box.get_matchup_graph()
         return sorted(
-            g.nodes,
-            key=lambda n: max(
-                g.get_edge_data(u, v)["margin"] for u, v in g.in_edges(n)
-            ),
+            g.nodes, key=lambda n: max(g.get_edge_data(u, v)["margin"] for u, v in g.in_edges(n))
         )
 
     @optional_score

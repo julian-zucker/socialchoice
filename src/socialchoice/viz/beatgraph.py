@@ -5,10 +5,7 @@ import pygraphviz as pgv
 
 
 def write_beatgraph(
-    victory_graph: nx.DiGraph,
-    rankings: list,
-    win_ratio: dict,
-    output_filename: str = "",
+    victory_graph: nx.DiGraph, rankings: list, win_ratio: dict, output_filename: str = ""
 ):
     """Draws the beatgraph of the given matchups to a file
 
@@ -98,14 +95,7 @@ if __name__ == "__main__":
 
     rankings = ["scala", "python", "java", "c", "fortran", "cobol"]
 
-    win_ratios = {
-        "scala": 1,
-        "python": 0.8,
-        "java": 0.6,
-        "c": 0.4,
-        "fortran": 0.2,
-        "cobol": 0.1,
-    }
+    win_ratios = {"scala": 1, "python": 0.8, "java": 0.6, "c": 0.4, "fortran": 0.2, "cobol": 0.1}
 
     output_filename = "viz.png"
 

@@ -67,9 +67,7 @@ class PairwiseBallotBox(BallotBox):
         """
         votes = list(votes)
         self.ballots = self.__ensure_valid_votes(votes)
-        self.candidates = candidates or self.__get_all_candidates_from_votes(
-            self.ballots
-        )
+        self.candidates = candidates or self.__get_all_candidates_from_votes(self.ballots)
 
     @staticmethod
     def __get_all_candidates_from_votes(votes) -> set:
@@ -86,8 +84,7 @@ class PairwiseBallotBox(BallotBox):
 
             if not vote[2] in {"win", "loss", "tie"}:
                 raise InvalidBallotDataException(
-                    """Expected type to be one of {"win", "loss", "tie"}, got"""
-                    + str(vote)
+                    """Expected type to be one of {"win", "loss", "tie"}, got""" + str(vote)
                 )
 
         return list(votes)
@@ -219,9 +216,7 @@ class RankedChoiceBallotBox(BallotBox):
         if candidates:
             candidate_set = set(candidates)
             if not len(candidates) == len(candidate_set):
-                raise InvalidElectionDataException(
-                    f"Duplicate candidates in {candidates}"
-                )
+                raise InvalidElectionDataException(f"Duplicate candidates in {candidates}")
         else:
             candidate_set = set()
             for ballot in ballots:

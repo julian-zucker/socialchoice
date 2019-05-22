@@ -63,9 +63,7 @@ def make_add_edges_in_order(edge_to_weights):
 def add_edges_in_order(edge_to_weights, vote_set):
     """Adds edges in order of weight, never adding edges that would create a cycle."""
     win_graph = nx.DiGraph()
-    ordered_votes = sorted(
-        vote_set, key=lambda e: edge_to_weights[(e[0], e[1])], reverse=True
-    )
+    ordered_votes = sorted(vote_set, key=lambda e: edge_to_weights[(e[0], e[1])], reverse=True)
     for c1, c2, result in ordered_votes:
         try:
             win_graph.add_edge(c1, c2)
