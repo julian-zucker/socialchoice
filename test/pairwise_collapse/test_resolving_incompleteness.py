@@ -32,7 +32,9 @@ def test_place_randomly(win_graph, candidates_to_add):
 
 
 def test_add_all_at_beginning(win_graph, candidates_to_add):
-    result = list(nx.topological_sort(add_all_at_beginning(win_graph, candidates_to_add)))
+    result = list(
+        nx.topological_sort(add_all_at_beginning(win_graph, candidates_to_add))
+    )
     assert result == [3, 1, 2]
 
 
@@ -56,8 +58,8 @@ def test_add_random_edges(win_graph, candidates_to_add):
 
 def test_add_edges_by_win_ratio(win_graph, candidates_to_add):
     edges_by_win_ratio = [(2, 1), (1, 3), (3, 2), (2, 3), (1, 2), (1, 2)]
-    add_edges_by_win_ratio = make_add_edges_by_win_ratio(edges_by_win_ratio)
-    result = list(nx.topological_sort(add_edges_by_win_ratio(win_graph, candidates_to_add)))
+    win_graph = add_edges_by_win_ratio(edges_by_win_ratio, win_graph, candidates_to_add)
+    result = list(nx.topological_sort(win_graph))
 
     # Edges (1,3) and (3,2) will be added, so this result is required
     assert result == [1, 3, 2]

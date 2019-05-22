@@ -17,7 +17,6 @@ def test_num_inversions():
     assert num_inversions([3, 2, 1], [1, 2, 3]) == 3
 
 
-
 def test_num_inversions_assertion_error_if_different_sets():
     with pytest.raises(ValueError):
         num_inversions([1], [2])
