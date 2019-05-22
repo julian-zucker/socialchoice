@@ -39,8 +39,6 @@ def test_get_win_tie_ratio():
 
 
 def test_flatten_ties():
-    election = Election(
-        PairwiseBallotBox([(1, 2, "win"), (3, 4, "win")], candidates={1, 2, 3, 4})
-    )
+    election = Election(PairwiseBallotBox([(1, 2, "win"), (3, 4, "win")], candidates={1, 2, 3, 4}))
     ranking = election.ranking_by_win_ratio(group_ties=True, include_score=True)
     assert ranking == [[(1, 1.0), (3, 1.0)], [(2, 0.0)]]

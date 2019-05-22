@@ -5,9 +5,7 @@ from socialchoice import RankedChoiceBallotBox, Election
 
 @pytest.fixture
 def election():
-    example_votes = RankedChoiceBallotBox(
-        [[1, 2, 3, 4], [1, 3, 2, 4], [1, 2, 3, 4], [1, 2, 4, 3]]
-    )
+    example_votes = RankedChoiceBallotBox([[1, 2, 3, 4], [1, 3, 2, 4], [1, 2, 3, 4], [1, 2, 4, 3]])
     return Election(example_votes)
 
 

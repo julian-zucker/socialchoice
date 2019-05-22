@@ -23,10 +23,7 @@ def test_intransitive_removed():
     pytest.skip("change API, then fix these")
     """If you have three intransitive votes (a minimal cycle), the result should have two of the three."""
     result = pairwise_collapse(
-        [(1, 2, "win"), (2, 3, "win"), (3, 1, "win")],
-        {1, 2, 3},
-        break_random_link,
-        place_randomly,
+        [(1, 2, "win"), (2, 3, "win"), (3, 1, "win")], {1, 2, 3}, break_random_link, place_randomly
     )
 
     # should still keep most of the structure, so we aren't okay with any of the six options

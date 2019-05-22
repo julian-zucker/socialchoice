@@ -32,9 +32,7 @@ def test_place_randomly(win_graph, candidates_to_add):
 
 
 def test_add_all_at_beginning(win_graph, candidates_to_add):
-    result = list(
-        nx.topological_sort(add_all_at_beginning(win_graph, candidates_to_add))
-    )
+    result = list(nx.topological_sort(add_all_at_beginning(win_graph, candidates_to_add)))
     assert result == [3, 1, 2]
 
 

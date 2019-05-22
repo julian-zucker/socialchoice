@@ -11,23 +11,26 @@ class BallotBox:
     """An interface for the features of ballot boxes"""
 
     def get_victory_graph(self) -> nx.DiGraph:
-        """A victory graph is a matchup graph of each candidate, but with only edges for wins. Every out-edge represents
-         a win over another candidate. Two candidates will not have any edge between them if there is a perfect tie by
-         win ratio.
+        """
+        A victory graph is a matchup graph of each candidate, but with only edges for wins.
+        Every out-edge represents a win over another candidate. Two candidates will not have
+        any edge between them if there is a perfect tie (by win ratio).
 
         See `get_matchup_graph` for a description of the attributes on nodes and edges.
          """
         pass
 
     def get_matchup_graph(self) -> nx.DiGraph:
-        """A matchup graph is a fully-connected graph, with each out-edge corresponding to a matchup and each in-edge
-        corresponding to the same matchup, but with wins and losses flipped. An edge `(a, b)` from a to b will have
-        `wins` corresponding to the number of wins `a` has over `b`, while the edge `(b, a)` will have `wins`
-        corresponding to the number of wins `b` has over `a`.
+        """
+        A matchup graph is a fully-connected graph, with each out-edge corresponding to a matchup
+        and each in-edge corresponding to the same matchup, but with wins and losses flipped.
+        An edge `(a, b)` from a to b will have `wins` corresponding to the number of wins `a`
+        has over `b`, while the edge `(b, a)` will have `wins` corresponding to the number of wins
+        `b` has over `a`.
 
-        Every edge has the attributes `wins` (described above), `losses`, `ties`, and `margin`. `losses` and `ties` are
-        self explanatory, simply the number of losses or ties between the two candidates. `margin` is the ratio of
-        wins to overall votes.
+        Every edge has the attributes `wins` (described above), `losses`, `ties`, and `margin`.
+        `losses` and `ties` are self explanatory, simply the number of losses or ties between
+        the two candidates. `margin` is the ratio of wins to overall votes.
         """
         pass
 
@@ -176,15 +179,16 @@ class RankedChoiceBallotBox(BallotBox):
         provided, the candidates mentioned in every other ballot.
 
         :param ballots: a list of ballots, as described above.
-        :param candidates: the set of candidates being voted on. Inferred from ballots if not provided.
+        :param candidates: the set of candidates being voted on. Inferred from ballots if not
+        provided.
         """
         self.ballots = self.__ensure_valid_ballots(ballots, candidates)
-
         self.ballots_all_sets = self.__convert_to_sets(self.ballots)
 
-        # We want to convert to pairwise ballots because there's no use reimplementing the code in PairwiseBallotBox
-        # for rankings, we can just convert a ranking to its constituent pairwise preferences and create our own
-        # PairwiseBallotBox that we can forward requests for pairwise-result based rankings to.
+        # We want to convert to pairwise ballots because there's no use reimplementing the code in
+        # PairwiseBallotBox for rankings, we can just convert a ranking to its constituent
+        # pairwise preferences and create our own PairwiseBallotBox that we can forward
+        # requests for pairwise-result based rankings to.
         pairwise_ballots = flatten(
             util.ranking_to_pairwise_ballots(ballot) for ballot in self.ballots_all_sets
         )
@@ -211,8 +215,8 @@ class RankedChoiceBallotBox(BallotBox):
                     f"Ballots must be a collection of lists, one ballot was {ballot}"
                 )
 
-        # Need to either get or infer the candidate set to validate that ballots are full, and to ensure that each
-        # ballot doesn't contain elements not in the candidate set.
+        # Need to either get or infer the candidate set to validate that ballots are full, and to
+        # ensure that each ballot doesn't contain elements not in the candidate set.
         if candidates:
             candidate_set = set(candidates)
             if not len(candidates) == len(candidate_set):
