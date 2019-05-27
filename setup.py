@@ -1,8 +1,7 @@
 from setuptools import setup, find_packages
 
-
-with open("README.md") as f:
-    readme = f.read()
+with open("README.md") as readme_fd:
+    readme = readme_fd.read()
 
 setup(
     name="socialchoice",
