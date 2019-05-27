@@ -32,6 +32,14 @@ def ranking_to_pairwise_ballots(ranking):
     return pairwise_ballots
 
 
+def candidates_in_ranked_choice_ballots(ballots) -> set:
+    candidates = set()
+    for ballot in ballots:
+        candidates |= candidates_in_ranked_choice_ballot(ballot)
+
+    return candidates
+
+
 def candidates_in_ranked_choice_ballot(ballot):
     candidate_set = set()
     for item in ballot:

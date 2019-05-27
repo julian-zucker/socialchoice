@@ -1,4 +1,6 @@
-from socialchoice import Election, PairwiseBallotBox
+import pytest
+
+from socialchoice import Election, PairwiseBallotBox, RankedChoiceBallotBox
 
 empty_election = Election(PairwiseBallotBox([]))
 example_votes = PairwiseBallotBox(
@@ -42,3 +44,15 @@ def test_flatten_ties():
     election = Election(PairwiseBallotBox([(1, 2, "win"), (3, 4, "win")], candidates={1, 2, 3, 4}))
     ranking = election.ranking_by_win_ratio(group_ties=True, include_score=True)
     assert ranking == [[(1, 1.0), (3, 1.0)], [(2, 0.0)]]
+
+
+def test_borda_count_pairwise_raises_ballot_type_error():
+    with pytest.raises(ValueError):
+        Election(PairwiseBallotBox([])).ranking_by_borda_count()
+
+
+def test_borda_count_ranked_choice():
+    ballots = RankedChoiceBallotBox([[1, 2, 3]])
+    election = Election(ballots)
+    # assert election.ranking_by_borda_count() == [1, 2, 3]
+    assert election.ranking_by_borda_count(include_score=True) == [(1, 2), (2, 1), (3, 0)]

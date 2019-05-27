@@ -2,7 +2,7 @@ import functools
 
 import networkx as nx
 
-from socialchoice import BallotBox
+from socialchoice import BallotBox, util
 
 
 def optional_score(ranking_method):
@@ -133,3 +133,33 @@ class Election:
             for candidate, x in wins_and_ties_vs_losses.items()
         ]
         return sorted(ratios, key=lambda x: x[1], reverse=True)
+
+    @optional_score
+    def ranking_by_borda_count(self) -> list:
+        orderings = self.ballot_box.get_orderings()
+        if orderings is None:
+            raise ValueError(
+                f"Could not retrieve orderings from the ballot box {self.ballot_box}."
+                f"Likely, the ballot box was a PairwiseBallotBox."
+            )
+
+        candidates = util.candidates_in_ranked_choice_ballots(orderings)
+        # Count the number of candidates each candidate was above, over all ballots
+        candidate_wins = {c: 0 for c in candidates}
+
+        for ordering in orderings:
+            print(candidate_wins)
+            if len(ordering) == 1:
+                continue
+
+            candidates_so_far = ordering[0]
+            print(candidates_so_far)
+            for more_candidates in ordering[1:]:
+                for candidate_already in candidates_so_far:
+                    candidate_wins[candidate_already] += len(more_candidates)
+                candidates_so_far |= more_candidates
+
+        result = sorted(candidate_wins.items(), key=lambda i: i[1], reverse=True)
+        print("resul")
+        print(result)
+        return result

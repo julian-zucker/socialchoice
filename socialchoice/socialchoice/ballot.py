@@ -52,6 +52,20 @@ class BallotBox:
         :return: a matchup mapping, as described above
         """
 
+    def get_orderings(self):
+        """
+        Returns a list of orderings, or None if this ballot box does not have complete orderings.
+
+        All orderings will be lists of sets (or frozensets), with sets representing ties. For
+        example:
+
+        ```
+        >>> RankedChoiceBallotBox([1, 2, 3], [{2, 3}, 1]).get_orderings()
+        [{1}, {2}, {3}], [{2, 3}, {1}]
+        ```
+        :return: all the orderings in this BallotBox.
+        """
+
 
 class PairwiseBallotBox(BallotBox):
     """Stores ballots in pairwise form, as in: ["Alice",  "Bob", "win"]"""
@@ -164,6 +178,9 @@ class PairwiseBallotBox(BallotBox):
 
         return matchups
 
+    def get_orderings(self):
+        return None
+
 
 class RankedChoiceBallotBox(BallotBox):
     def __init__(self, ballots, candidates=None):
@@ -242,6 +259,9 @@ class RankedChoiceBallotBox(BallotBox):
     def __convert_to_sets(self, ballots):
         """Takes ballots, which may include single items at rankings which do not have ties, into a list of sets."""
         return [util.ranking_with_all_sets(b) for b in ballots]
+
+    def get_orderings(self):
+        return self.ballots_all_sets
 
 
 class InvalidElectionDataException(Exception):
