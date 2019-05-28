@@ -1,11 +1,14 @@
+import warnings
+
 import networkx as nx
 from more_itertools import flatten
 
 from socialchoice import util
+from socialchoice.pairwisecollapse.pairwise_collapse import pairwise_collapse
 
 
 class BallotBox:
-    """An interface for the features of ballot boxes"""
+    """An interface for the features of ballot boxes. """
 
     def get_victory_graph(self) -> nx.DiGraph:
         """
@@ -52,6 +55,12 @@ class BallotBox:
         :return: a matchup mapping, as described above
         """
 
+    def supports_ordering_based_methods(self):
+        """Does this ballot box support ordering-based methods? That is, can it produce a set of
+        orderings?
+        """
+        return self.get_orderings() is not None
+
     def get_orderings(self):
         """
         Returns a list of orderings, or None if this ballot box does not have complete orderings.
@@ -65,6 +74,21 @@ class BallotBox:
         ```
         :return: all the orderings in this BallotBox.
         """
+
+    def enable_ordering_based_methods(self, intransitivity_resolver, incompleteness_resolver):
+        """If this election has a ballot box that supports pairwise comparisons but
+        not ordering based methods, use the given intransitivity and incompleteness
+        resolver to make each pairwise comparison (or, if there are voters, each voter's
+        set of pairwise comparisons) into an ordering.
+
+        :param intransitivity_resolver: see socialchoice.pairwise_collapse.resolving_intransitivity
+        :param incompleteness_resolver: see socialchoice.pairwise_collapse.resolving_incompleteness
+        :return: None
+        """
+        if self.supports_ordering_based_methods():
+            warnings.warn(
+                "Enabling ordering-based methods on ballot box which already supports ordering-based methods"
+            )
 
 
 class PairwiseBallotBox(BallotBox):
@@ -81,6 +105,7 @@ class PairwiseBallotBox(BallotBox):
         """
         votes = list(votes)
         self.ballots = self.__ensure_valid_votes(votes)
+        self.ordering_ballot_box = None
         self.candidates = candidates or self.__get_all_candidates_from_votes(self.ballots)
 
     @staticmethod
@@ -179,7 +204,22 @@ class PairwiseBallotBox(BallotBox):
         return matchups
 
     def get_orderings(self):
-        return None
+        if self.ordering_ballot_box is None:
+            return None
+        else:
+            return self.ordering_ballot_box.get_orderings()
+
+    def enable_ordering_based_methods(self, intransitivity_resolver, incompleteness_resolver):
+        super().enable_ordering_based_methods(intransitivity_resolver, incompleteness_resolver)
+
+        self.ordering_ballot_box = RankedChoiceBallotBox(
+            [
+                pairwise_collapse(
+                    [ballot], self.candidates, intransitivity_resolver, incompleteness_resolver
+                )
+                for ballot in self.ballots
+            ]
+        )
 
 
 class RankedChoiceBallotBox(BallotBox):

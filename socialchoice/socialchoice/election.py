@@ -1,4 +1,5 @@
 import functools
+import warnings
 
 import networkx as nx
 
@@ -13,6 +14,7 @@ def optional_score(ranking_method):
     :return: the same ranking method, but with a flag `include_score`, which defaults to False. If set to true, the
     function returns a list of 2-tuples instead of just a ranking
     """
+
     # This unfortunately has to be defined above Election to be used in Election
 
     def nest_ties(ranking):
@@ -58,6 +60,9 @@ class Election:
 
     def __init__(self, ballot_box: BallotBox):
         self.ballot_box = ballot_box
+
+    ################################################################################################
+    # --- Pairwise Methods
 
     def ranking_by_ranked_pairs(self) -> list:
         matchups = self.ballot_box.get_victory_graph()
@@ -134,13 +139,20 @@ class Election:
         ]
         return sorted(ratios, key=lambda x: x[1], reverse=True)
 
+    ################################################################################################
+    # Ordering based methods
+
+    def supports_ordering_based_methods(self) -> bool:
+        return self.ballot_box.supports_ordering_based_methods()
+
     @optional_score
     def ranking_by_borda_count(self) -> list:
         orderings = self.ballot_box.get_orderings()
         if orderings is None:
             raise ValueError(
-                f"Could not retrieve orderings from the ballot box {self.ballot_box}."
-                f"Likely, the ballot box was a PairwiseBallotBox."
+                f"Could not retrieve orderings from the ballot box {self.ballot_box}.\n"
+                f"Likely, the ballot box was a PairwiseBallotBox. \n"
+                f"Use enable_ordering_based_methods to allow this Election to run Borda Count."
             )
 
         candidates = util.candidates_in_ranked_choice_ballots(orderings)
@@ -148,12 +160,10 @@ class Election:
         candidate_wins = {c: 0 for c in candidates}
 
         for ordering in orderings:
-            print(candidate_wins)
             if len(ordering) == 1:
                 continue
 
             candidates_so_far = ordering[0]
-            print(candidates_so_far)
             for more_candidates in ordering[1:]:
                 for candidate_already in candidates_so_far:
                     candidate_wins[candidate_already] += len(more_candidates)
@@ -161,3 +171,20 @@ class Election:
 
         result = sorted(candidate_wins.items(), key=lambda i: i[1], reverse=True)
         return result
+
+    ################################################################################################
+    # Adding support for ordering based methods
+
+    def enable_ordering_based_method(self, intransitivity_resolver, incompleteness_resolver):
+        """If this election has a ballot box that supports pairwise comparisons but
+        not ordering based methods, use the given intransitivity and incompleteness
+        resolver to make each pairwise comparison (or, if there are voters, each voter's
+        set of pairwise comparisons) into an ordering.
+
+        :param intransitivity_resolver: see socialchoice.pairwise_collapse.resolving_intransitivity
+        :param incompleteness_resolver: see socialchoice.pairwise_collapse.resolving_incompleteness
+        :return: None
+        """
+        self.ballot_box.enable_ordering_based_methods(
+            intransitivity_resolver, incompleteness_resolver
+        )
