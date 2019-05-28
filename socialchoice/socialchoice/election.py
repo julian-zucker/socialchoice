@@ -160,6 +160,4 @@ class Election:
                 candidates_so_far |= more_candidates
 
         result = sorted(candidate_wins.items(), key=lambda i: i[1], reverse=True)
-        print("resul")
-        print(result)
         return result

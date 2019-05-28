@@ -56,3 +56,10 @@ def test_borda_count_ranked_choice():
     election = Election(ballots)
     # assert election.ranking_by_borda_count() == [1, 2, 3]
     assert election.ranking_by_borda_count(include_score=True) == [(1, 2), (2, 1), (3, 0)]
+
+
+def test_borda_count_ranked_choice_with_ties():
+    ballots = RankedChoiceBallotBox([[1, 2, 3], [{1, 2, 3}], [1, {2, 3}]])
+    election = Election(ballots)
+    # assert election.ranking_by_borda_count() == [1, 2, 3]
+    assert election.ranking_by_borda_count(include_score=True) == [(1, 4), (2, 1), (3, 0)]
