@@ -1,16 +1,39 @@
 """Functions that will create transitive win-graphs from (possibly) intransitive win-graphs.
 
-Input is a intransitive win-graph, output is a transitive win-graph."""
+Input is a intransitive win-graph, output is a transitive win-graph.
+
+The easiest way to generate intransitivity resolvers is with the IntransitivityResolverFactory.
+You construct it with the set of pairwise votes it will be resolving vote sets from, and then
+can use its methods to generate intransitivity resolvers.
+"""
 import random
 from functools import partial
 
 import networkx as nx
 
+from socialchoice import PairwiseBallotBox
+
+
+class IntransitivityResolverFactory:
+    def __init__(self, pairwise_ballots: PairwiseBallotBox):
+        self.pairwise_ballots = pairwise_ballots
+        wg = pairwise_ballots.get_matchup_graph()
+        self.edge_to_weight = {e: wg.get_edge_data(*e)["margin"] for e in wg.edges}
+
+    def make_break_random_link(self):
+        return break_random_link
+
+    def make_break_weakest_link(self):
+        return make_break_weakest_link(self.edge_to_weight)
+
+    def make_add_edges_in_order(self):
+        return make_add_edges_in_order(self.edge_to_weight)
+
 
 def break_random_link(vote_set):
     """While there is a cycle, breaks the cycle by removing a random edge in it."""
     win_graph = nx.DiGraph()
-    win_graph.add_edges_from((vote[0], vote[1]) for vote in vote_set)
+    win_graph = PairwiseBallotBox(vote_set).get_victory_graph()
 
     # Keep iterating until there are no cycles remaining
     while True:
@@ -37,8 +60,7 @@ def make_break_weakest_link(edge_to_weight):
 
 def break_weakest_link(edge_to_weight, vote_set):
     """While there is a cycle, breaks the cycle by removing the weakest edge in it."""
-    win_graph = nx.DiGraph()
-    win_graph.add_edges_from((vote[0], vote[1]) for vote in vote_set)
+    win_graph = PairwiseBallotBox(vote_set).get_victory_graph()
 
     def weakest(edges):
         return min(edges, key=lambda e: edge_to_weight[e])
@@ -55,15 +77,16 @@ def break_weakest_link(edge_to_weight, vote_set):
     return win_graph
 
 
-def make_add_edges_in_order(edge_to_weights):
+def make_add_edges_in_order(edge_to_weight):
     # Partial function instead of local definition so that result can be pickled
-    return partial(add_edges_in_order, edge_to_weights)
+    return partial(add_edges_in_order, edge_to_weight)
 
 
-def add_edges_in_order(edge_to_weights, vote_set):
+def add_edges_in_order(edge_to_weight, vote_set):
     """Adds edges in order of weight, never adding edges that would create a cycle."""
     win_graph = nx.DiGraph()
-    ordered_votes = sorted(vote_set, key=lambda e: edge_to_weights[(e[0], e[1])], reverse=True)
+    ordered_votes = sorted(vote_set, key=lambda e: edge_to_weight[(e[0], e[1])], reverse=True)
+
     for c1, c2, result in ordered_votes:
         try:
             win_graph.add_edge(c1, c2)

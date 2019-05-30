@@ -5,8 +5,8 @@ import random
 from socialchoice import ranking_similarity
 from socialchoice import RankedChoiceBallotBox
 from socialchoice import Election
-from pairwise_collapse.resolving_intransitivity import *
-from pairwise_collapse.resolving_incompleteness import *
+from socialchoice.pairwisecollapse.resolving_intransitivity import *
+from socialchoice.pairwisecollapse.resolving_incompleteness import *
 
 import multiprocessing
 
