@@ -15,6 +15,30 @@ from socialchoice import PairwiseBallotBox
 from socialchoice.util import candidates_in_ranked_choice_ballot
 
 
+class IncompletenessResolverFactory:
+    def __init__(self, pairwise_ballot_box: PairwiseBallotBox):
+        self.pairwise_ballots = pairwise_ballot_box
+        self.candidates = pairwise_ballot_box.candidates
+        wg = pairwise_ballot_box.get_matchup_graph()
+        self.edge_to_weight = {e: wg.get_edge_data(*e)["margin"] for e in wg.edges}
+
+    def make_place_randomly(self):
+        return partial(place_randomly, candidates=self.candidates)
+
+    def make_add_all_at_beginning(self):
+        return partial(add_all_at_beginning, candidates=self.candidates)
+
+    def make_add_all_at_end(self):
+        return partial(add_all_at_end, candidates=self.candidates)
+
+    def make_add_random_edges(self):
+        return partial(add_random_edges, candidates=self.candidates)
+
+    def make_add_edges_by_win_ratio(self):
+        add_edges_by_win_ratio = make_add_edges_by_win_ratio(self.edge_to_weight)
+        return partial(add_edges_by_win_ratio, candidates=self.candidates)
+
+
 def place_randomly(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
     """Inserts each candidate to a random place in the ranking."""
     ranking = _graph_to_ranking(win_graph)
