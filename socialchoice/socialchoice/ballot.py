@@ -211,7 +211,6 @@ class PairwiseBallotBox(BallotBox):
 
     def enable_ordering_based_methods(self, intransitivity_resolver, incompleteness_resolver):
         super().enable_ordering_based_methods(intransitivity_resolver, incompleteness_resolver)
-
         self.ordering_ballot_box = RankedChoiceBallotBox(
             [
                 pairwise_collapse(

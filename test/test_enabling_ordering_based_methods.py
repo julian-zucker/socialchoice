@@ -1,8 +1,11 @@
+import pytest
+
 from socialchoice import Election, PairwiseBallotBox
 from socialchoice.pairwisecollapse.resolving_incompleteness import add_random_edges
 from socialchoice.pairwisecollapse.resolving_intransitivity import break_random_link
 
 
+@pytest.mark.slow
 def test_simple_pairwise_ballot():
     # Repeat this 100 times to drown out the noise inherent to stochastic pairwise collapse methods
     ballots = PairwiseBallotBox(

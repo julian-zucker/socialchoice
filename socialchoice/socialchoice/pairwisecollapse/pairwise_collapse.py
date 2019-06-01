@@ -16,5 +16,5 @@ def pairwise_collapse(
     :param incompleteness_resolver: function used to complete the transitive sub-graph
     """
     transitive_votes = intransitivity_resolver(pairwise_votes)
-    complete_transitive_votes = incompleteness_resolver(transitive_votes, candidates)
+    complete_transitive_votes = incompleteness_resolver(transitive_votes)
     return list(nx.topological_sort(complete_transitive_votes))
