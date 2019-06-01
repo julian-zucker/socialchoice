@@ -15,5 +15,5 @@ setup(
     description="Social Choice Theory in Python",
     long_description=readme,
     long_description_content_type="text/markdown",
-    install_requires=["networkx", "pygraphviz", "pytest", "scipy"],
+    install_requires=["networkx", "pytest", "scipy"],
 )
