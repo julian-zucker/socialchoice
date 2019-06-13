@@ -10,6 +10,12 @@ from socialchoice.pairwisecollapse.pairwise_collapse import pairwise_collapse
 class BallotBox:
     """An interface for the features of ballot boxes. """
 
+    def get_candidates(self) -> set:
+        """
+        :return: The set of all candidates in this election.
+        """
+        pass
+
     def get_victory_graph(self) -> nx.DiGraph:
         """
         A victory graph is a matchup graph of each candidate, but with only edges for wins.
@@ -58,6 +64,10 @@ class BallotBox:
     def supports_ordering_based_methods(self):
         """Does this ballot box support ordering-based methods? That is, can it produce a set of
         orderings?
+
+        False by default for `PairwiseBallotBox`es.
+        If this doesn't return True, ordering-based methods such as Borda count will fail.
+        If you want to use Borda count on a PairwiseBallotBox, use `enable_ordering_based_methods`
         """
         return self.get_orderings() is not None
 
@@ -71,6 +81,14 @@ class BallotBox:
         ```
         >>> RankedChoiceBallotBox([1, 2, 3], [{2, 3}, 1]).get_orderings()
         [{1}, {2}, {3}], [{2, 3}, {1}]
+
+        >>> from socialchoice import IntransitivityResolverFactory
+        >>> from socialchoice import IncompletenessResolverFactory
+        >>> ballots = PairwiseBallotBox([1,2,"win"])
+        >>> intransitivity_res = IntransitivityResolverFactory(ballots).make_break_random_link()
+        >>> incompleteness_res = IncompletenessResolverFactory(ballots).make_add_random_edges()
+        >>> ballots.enable_ordering_based_methods(intransitivity_res, incompleteness_res)
+        [{"a"}, {"b"}]
         ```
         :return: all the orderings in this BallotBox.
         """
@@ -96,11 +114,15 @@ class PairwiseBallotBox(BallotBox):
 
     def __init__(self, votes, candidates=None):
         """
-        Creates a new PairwiseBallotBox. This shows that
+        Creates a new PairwiseBallotBox.
 
-        :param votes: An array of votes, where a vote is any indexable object of length 3
+        :param votes: An array of votes, where a vote is any indexable object of length 3.
+        The first two elements are the ids of the two candidates being voted on, and the third is
+        one of "win", "loss", or "tie", indicating the result.
+
         :param candidates: None, meaning to infer the candidate set from the votes, or a
-                           collection of the candidates that were being voted on in this election.
+        collection of the candidates that were being voted on in this election.
+
         :raises InvalidVoteShapeException: if given any vote with length != 3
         """
         votes = list(votes)
@@ -127,6 +149,9 @@ class PairwiseBallotBox(BallotBox):
                 )
 
         return list(votes)
+
+    def get_candidates(self) -> set:
+        return self.candidates
 
     def get_victory_graph(self) -> nx.DiGraph:
         matchups = self.get_matchup_graph()
@@ -221,6 +246,81 @@ class PairwiseBallotBox(BallotBox):
         )
 
 
+class VoterTrackingPairwiseBallotBox(BallotBox):
+    """
+    Like a PairwiseBallotBox, but keeps track of which voter submitted which vote. There is no
+    different in the two for pairwise methods, but if you are converting voters vote sets to
+    orderings with `enable_ordering_based_methods`, this will be faster and more accurate.
+    Because it can process each voter's set of votes together, the resulting orderings will capture
+    more of the underlying data, and the conversion only has to happen once.
+    """
+
+    def __init__(self, votes, candidates=None):
+        """
+
+        :param votes: An iterable of votes, where a vote is any indexable object of length 4. The
+        first three elements must be the same as PairwiseBallotBox, and the fourth indicates the
+        id of the voter who placed the vote.
+
+        :param candidates: None, meaning to infer the candidate set from the votes, or a
+                           collection of the candidates that were being voted on in this election.
+
+        :raises InvalidVoteShapeException: if given any invalid votes
+        """
+        self.votes = list(votes)
+        # Lean on PairwiseBallotBox for pairwise methods. We don't care about who placed a vote
+        # if all that matters is the number of wins/losses/ties in each matchup.
+        votes_without_voter_ids = [v[0:3] for v in votes]
+        self.pairwise_ballot_box = PairwiseBallotBox(votes_without_voter_ids, candidates)
+
+        # Lazily initialize the ordering ballot box.
+        self.ordering_ballot_box = None
+
+    def get_candidates(self) -> set:
+        return self.pairwise_ballot_box.candidates
+
+    def get_victory_graph(self) -> nx.DiGraph:
+        return self.pairwise_ballot_box.get_victory_graph()
+
+    def get_matchup_graph(self) -> nx.DiGraph:
+        return self.pairwise_ballot_box.get_matchup_graph()
+
+    def get_matchups(self) -> dict:
+        return self.pairwise_ballot_box.get_matchups()
+
+    def supports_ordering_based_methods(self):
+        return self.ordering_ballot_box is None
+
+    def get_orderings(self):
+        if self.ordering_ballot_box:
+            return self.ordering_ballot_box.get_orderings()
+        else:
+            return None
+
+    def enable_ordering_based_methods(self, intransitivity_resolver, incompleteness_resolver):
+        voter_to_vote_set = {}
+
+        for vote in self.votes:
+            vote_content = vote[0:3]
+            voter = vote[3]
+            if voter in voter_to_vote_set:
+                voter_to_vote_set[voter].append(vote_content)
+            else:
+                voter_to_vote_set[voter] = [vote_content]
+
+        # Now, voter_to_vote_set is a mapping from a voter to a set of orderings. We want to
+        # create an ordering for each.
+
+        orderings = []
+        for voter, vote_set in voter_to_vote_set.items():
+            orderable_set = incompleteness_resolver(intransitivity_resolver(vote_set))
+            ordering = list(nx.topological_sort(orderable_set))
+            orderings.append(ordering)
+
+        # And then use those orderings as the basis for our ordering methods. One per voter.
+        self.ordering_ballot_box = RankedChoiceBallotBox(orderings, self.get_candidates())
+
+
 class RankedChoiceBallotBox(BallotBox):
     def __init__(self, ballots, candidates=None):
         """Creates a RankedChoiceBallotBox from the given ballots. Each ballot must be a list, where
@@ -247,6 +347,9 @@ class RankedChoiceBallotBox(BallotBox):
         )
 
         self.pairwise_ballot_box = PairwiseBallotBox(pairwise_ballots)
+
+    def get_candidates(self) -> set:
+        return self.pairwise_ballot_box.candidates
 
     def get_victory_graph(self) -> nx.DiGraph:
         return self.pairwise_ballot_box.get_victory_graph()

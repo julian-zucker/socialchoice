@@ -7,7 +7,7 @@ from functools import partial
 
 import networkx as nx
 
-from socialchoice import util
+from socialchoice import util, BallotBox
 from socialchoice import PairwiseBallotBox
 
 # TODO this file has duplicate code in each of the functions, converting candidates to `to_add`
@@ -16,10 +16,10 @@ from socialchoice.util import candidates_in_ranked_choice_ballot
 
 
 class IncompletenessResolverFactory:
-    def __init__(self, pairwise_ballot_box: PairwiseBallotBox):
-        self.pairwise_ballots = pairwise_ballot_box
-        self.candidates = pairwise_ballot_box.candidates
-        wg = pairwise_ballot_box.get_matchup_graph()
+    def __init__(self, ballot_box: BallotBox):
+        self.pairwise_ballots = ballot_box
+        self.candidates = ballot_box.get_candidates()
+        wg = ballot_box.get_matchup_graph()
         self.edge_to_weight = {e: wg.get_edge_data(*e)["margin"] for e in wg.edges}
 
     def make_place_randomly(self):

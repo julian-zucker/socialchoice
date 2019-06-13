@@ -11,13 +11,13 @@ from functools import partial
 
 import networkx as nx
 
-from socialchoice import PairwiseBallotBox
+from socialchoice import BallotBox, PairwiseBallotBox
 
 
 class IntransitivityResolverFactory:
-    def __init__(self, pairwise_ballots: PairwiseBallotBox):
-        self.pairwise_ballots = pairwise_ballots
-        wg = pairwise_ballots.get_matchup_graph()
+    def __init__(self, ballot_box: BallotBox):
+        self.pairwise_ballots = ballot_box
+        wg = ballot_box.get_matchup_graph()
         self.edge_to_win_ratio = {e: wg.get_edge_data(*e)["margin"] for e in wg.edges}
 
     def make_break_random_link(self):
@@ -32,7 +32,6 @@ class IntransitivityResolverFactory:
 
 def break_random_link(vote_set):
     """While there is a cycle, breaks the cycle by removing a random edge in it."""
-    win_graph = nx.DiGraph()
     win_graph = PairwiseBallotBox(vote_set).get_victory_graph()
 
     # Keep iterating until there are no cycles remaining
