@@ -1,12 +1,13 @@
 """This file computes the values in the "Results" section of the vote induction paper."""
 import csv
+import multiprocessing
 
 from socialchoice import Election, RankedChoiceBallotBox, ranking_similarity
 from socialchoice.induction.resolving_incompleteness import *
 from socialchoice.induction.resolving_intransitivity import *
 
 
-def kendall_tau_distance(dataset, intransitivity_resolver, incompleteness_resolver):
+def evaluate_vote_induction_method(dataset, intransitivity_resolver, incompleteness_resolver):
     """Computes the Kendall tau distance between original pairwise votes from a dataset and the collapsed rankings.
     Uses the Kendall tau on the output of the specified social choice method.
 
@@ -82,5 +83,6 @@ if __name__ == "__main__":
         for int_res in intransitivity_resolvers:
             for inc_res in incompleteness_resolvers:
                 # Run 30 times to cut down noise due to stochastic problems
-                for i in range(30):
-                    kendall_tau_distance(vote_set, int_res, inc_res)
+                multiprocessing.Pool().starmap(
+                    evaluate_vote_induction_method, [(vote_set, int_res, inc_res)] * 30
+                )

@@ -6,7 +6,7 @@ with open("README.md") as readme_fd:
 setup(
     name="socialchoice",
     version="0.0.5",
-    packages=["socialchoice", "socialchoice.pairwisecollapse"],
+    packages=["socialchoice", "socialchoice.induction"],
     package_dir={"": "socialchoice"},
     url="https://github.com/julian-zucker/socialchoice",
     license="Apache 2.0",
