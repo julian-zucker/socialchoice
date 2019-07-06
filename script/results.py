@@ -1,23 +1,12 @@
 """This file computes the values in the "Results" section of the vote induction paper."""
 import csv
-import random
 
-from socialchoice import ranking_similarity
-from socialchoice import RankedChoiceBallotBox
-from socialchoice import Election
-from socialchoice.induction.resolving_intransitivity import *
+from socialchoice import Election, RankedChoiceBallotBox, ranking_similarity
 from socialchoice.induction.resolving_incompleteness import *
+from socialchoice.induction.resolving_intransitivity import *
 
-import multiprocessing
 
-
-def kendall_tau_distance(
-    dataset,
-    intransitivity_resolver,
-    incompleteness_resolver,
-    upsampling_method,
-    social_choice_method,
-):
+def kendall_tau_distance(dataset, intransitivity_resolver, incompleteness_resolver):
     """Computes the Kendall tau distance between original pairwise votes from a dataset and the collapsed rankings.
     Uses the Kendall tau on the output of the specified social choice method.
 
@@ -25,68 +14,46 @@ def kendall_tau_distance(
     :param intransitivity_resolver: a function that takes a win-graph and returns an acyclic win-graph
     :param incompleteness_resolver: a function that takes a win-graph and a set of candidates
     and produces a fully-connected win-graph with each candidate
-    :param upsampling_method: the method to upsample with, either "by_voter", "by_vote", or "none"
-    :param social_choice_method: the name of the social choice method to run
     :return: a float in [-1, 1]
     """
-    vote_sets = {vote[3]: [] for vote in dataset}
+    voter_to_vote_set = {vote[3]: [] for vote in dataset}
     candidates = {v[0] for v in dataset} | {v[1] for v in dataset}
     num_pairs = len(candidates) * (len(candidates) - 1) // 2
 
+    # vote_sets should be a mapping from each voter to the contents of each of their votes.
     for vote in dataset:
-        vote_sets[vote[3]].append(vote[0:3])
+        voter_to_vote_set[vote[3]].append(vote[0:3])
 
     # Each voter should have equal weight, so make each vote set the same size
-    if upsampling_method == "by_voter":
-        for voter in vote_sets:
-            vote_sets[voter] = random.choices(vote_sets[voter], k=num_pairs)
-            # Also update the pairwise dataset to reflect the new votes
-        dataset = [vote for vote_set in vote_sets.values() for vote in vote_set]
+    for voter in voter_to_vote_set:
+        voter_to_vote_set[voter] = random.choices(voter_to_vote_set[voter], k=num_pairs)
+        # Also update the pairwise dataset to reflect the new votes
+    dataset = [vote for vote_set in voter_to_vote_set.values() for vote in vote_set]
 
+    # This is the pairwise election that serves as a baseline "ground truth" for the
+    # vote induction method.
     pairwise_election = Election(PairwiseBallotBox([vote[0:3] for vote in dataset]))
 
-    transitive_vote_sets = [intransitivity_resolver(vote_set) for vote_set in vote_sets.values()]
+    transitive_vote_sets = [
+        intransitivity_resolver(vote_set) for vote_set in voter_to_vote_set.values()
+    ]
 
     complete_vote_sets = []
 
     for vote_graph in transitive_vote_sets:
-        if upsampling_method == "by_vote":
-            # We need to put in one ranking per vote in the voter's vote set, but we repeat the ranking to avoid
-            # expensive recomputation of the incompleteness resolver
-            complete_vote_sets += [incompleteness_resolver(vote_graph, candidates)] * len(
-                vote_graph
-            )
-        else:
-            complete_vote_sets.append(incompleteness_resolver(vote_graph, candidates))
+        complete_vote_sets.append(incompleteness_resolver(vote_graph, candidates))
 
+    # Create an election using the Ranked ballots
     ranked_choice_ballots = [
         list(nx.topological_sort(win_graph)) for win_graph in complete_vote_sets
     ]
     ranking_election = Election(RankedChoiceBallotBox(ranked_choice_ballots))
 
-    if social_choice_method == "ranked_pairs":
-        pairwise_ranking = pairwise_election.ranking_by_ranked_pairs()
-        ranked_choice_ranking = ranking_election.ranking_by_ranked_pairs()
-    elif social_choice_method == "win_ratio":
-        pairwise_ranking = pairwise_election.ranking_by_win_ratio()
-        ranked_choice_ranking = ranking_election.ranking_by_win_ratio()
-    elif social_choice_method == "minimax":
-        pairwise_ranking = pairwise_election.ranking_by_minimax()
-        ranked_choice_ranking = ranking_election.ranking_by_minimax()
-    else:
-        raise ValueError(f"Invalid social_choice_method: {social_choice_method}")
+    pairwise_ranking = pairwise_election.ranking_by_ranked_pairs()
+    ranked_choice_ranking = ranking_election.ranking_by_ranked_pairs()
 
-    print(pairwise_ranking)
-    print(ranked_choice_ranking)
     tau = ranking_similarity.kendalls_tau(pairwise_ranking, ranked_choice_ranking)
-    print(
-        f"{intransitivity_resolver} {incompleteness_resolver} {upsampling_method} {social_choice_method}: tau={tau}"
-    )
-
-
-# The goal is that this file can be structured like:
-# kendall_tau_distance(dogs, break_random_link, place_randomly, upsampling="by_voter", "ranked_pairs")
-# repeated for each value required in the table.
+    print(f"tau={tau},{intransitivity_resolver.__name__},{incompleteness_resolver.__name__}")
 
 
 if __name__ == "__main__":
@@ -105,21 +72,8 @@ if __name__ == "__main__":
 
     incompleteness_resolvers = [
         place_randomly,
-        add_all_at_beginning,
-        add_all_at_end,
         add_random_edges,
         make_add_edges_by_win_ratio(edge_to_weight),
-    ]
-
-    upsampling_methods = [
-        "by_voter",
-        "by_vote",
-        # "none",
-    ]
-
-    social_choice_methods = [
-        "ranked_pairs",
-        # "win_ratio",
     ]
 
     # The set of inputs to run kendall_tau_distance on is the cartesian product of the above arrays
@@ -127,9 +81,6 @@ if __name__ == "__main__":
     for vote_set in vote_sets:
         for int_res in intransitivity_resolvers:
             for inc_res in incompleteness_resolvers:
-                for upsample in upsampling_methods:
-                    for scm in social_choice_methods:
-                        inputs.append((vote_set, int_res, inc_res, upsample, scm))
-
-    pool = multiprocessing.Pool(8)
-    out = pool.starmap(kendall_tau_distance, inputs)
+                # Run 30 times to cut down noise due to stochastic problems
+                for i in range(30):
+                    kendall_tau_distance(vote_set, int_res, inc_res)

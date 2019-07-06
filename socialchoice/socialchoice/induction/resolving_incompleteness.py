@@ -1,18 +1,18 @@
 """Functions that will add missing items into a partial ranking. All functions have the following signature:
-
-Input is a (possibly) partial, but transitive win-graph, and a set of nodes to insert into that win-graph. The output is a
-complete, fully connected, transitive win-graph."""
+Input is a (possibly) partial, but transitive win-graph, and a set of nodes to insert into that win-graph.
+The output is a complete, fully connected, transitive win-graph.
+"""
 import random
 from functools import partial
 
 import networkx as nx
 
-from socialchoice import util, BallotBox
-from socialchoice import PairwiseBallotBox
+from socialchoice import BallotBox, PairwiseBallotBox, util
+from socialchoice.util import candidates_in_ranked_choice_ballot
+
 
 # TODO this file has duplicate code in each of the functions, converting candidates to `to_add`
 #      and also roundtripping to rankings
-from socialchoice.util import candidates_in_ranked_choice_ballot
 
 
 class IncompletenessResolverFactory:

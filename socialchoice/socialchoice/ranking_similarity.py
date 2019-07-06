@@ -1,47 +1,42 @@
 import scipy.stats
 
 
-def kendalls_tau(ranking1, ranking2):
+def kendalls_tau(ordering1, ordering2):
+    """
+    :return: The kendall tau coefficient between these two orderings.
+    """
+
     def ranks_of_candidates(ranking):
-        r = {}
-        ri = 0
+        """
+        :param ranking: An ordering over candidates.
+        :return: The ranks of each candidate in the specified ordering.
+
+        >>> ranks_of_candidates([1, 3, 2])
+        {1: 0, 3: 1, 2: 2}
+        """
+        # A mapping from each candidate to their rank.
+        candidate_to_rank = {}
+        current_rank = 0
 
         for tie_set in ranking:
             if isinstance(tie_set, set):
-                ri += len(tie_set) / 2
+                # If there's a set, then each candidate get's placed at the middle: so divide
+                # the length of the set by two, and assign that rank to each candidate.
+                current_rank += len(tie_set) / 2
                 for candidate in tie_set:
-                    r[candidate] = ri
-                ri += len(tie_set) / 2
+                    candidate_to_rank[candidate] = current_rank
+                current_rank += len(tie_set) / 2
             else:
+                # Otherwise, we only have one, so add one and assign that rank.
                 candidate = tie_set
-                ri += 1
-                r[candidate] = ri
-        return r
+                current_rank += 1
+                candidate_to_rank[candidate] = current_rank
+        return candidate_to_rank
 
-    ranks1 = ranks_of_candidates(ranking1)
-    ranks2 = ranks_of_candidates(ranking2)
+    ranks1 = ranks_of_candidates(ordering1)
+    ranks2 = ranks_of_candidates(ordering2)
 
-    x = [ranks1[item] for item in ranking1]
-    y = [ranks2[item] for item in ranking1]
-    return scipy.stats.kendalltau(x, y)
-
-
-def num_inversions(ranking1, ranking2):
-    """This is a measure of how far apart two rankings are, by the number of inversions. An inversion is a
-    swapping of two elements, so [1,2,3] and [1,3,2] have one inversion, while [1,2,3] and [3,1,2] have two.
-
-    :raises ValueError: if called with rankings that don't contain the same elements.
-    """
-    ranking1 = list(ranking1)
-    ranking2 = list(ranking2)
-
-    if set(ranking1) != set(ranking2):
-        raise ValueError(f"Rankings must contain same elements, {ranking1} and {ranking2} differ")
-
-    inversions = 0
-    for index, item1 in enumerate(ranking1):
-        for item2 in ranking1[index + 1 :]:
-            if ranking2.index(item1) >= ranking2.index(item2):
-                inversions += 1
-
-    return inversions
+    x = [ranks1[item] for item in ordering1]
+    y = [ranks2[item] for item in ordering1]
+    correlation, pvalue = scipy.stats.kendalltau(x, y)
+    return correlation
