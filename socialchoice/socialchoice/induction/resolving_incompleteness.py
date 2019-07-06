@@ -65,7 +65,7 @@ def add_all_at_end(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
 
 
 def add_random_edges(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
-    """Chooses a random pair of nodes that aren’t connected to each other, and then connects them,
+    """Chooses a random pair of nodes that aren't connected to each other, and then connects them,
     never adding edges that would result in a cycle, until the graph is a complete win-graph.
     """
     to_add = candidates.difference(set(win_graph.nodes))

@@ -1,6 +1,7 @@
 """This file computes the values in the "Results" section of the vote induction paper."""
 import csv
 import multiprocessing
+import sys
 
 from socialchoice import Election, RankedChoiceBallotBox, ranking_similarity
 from socialchoice.induction.resolving_incompleteness import *
@@ -58,7 +59,7 @@ def evaluate_vote_induction_method(dataset, intransitivity_resolver, incompleten
 
 
 if __name__ == "__main__":
-    with open("../data/dog_project_votes.csv") as csv_fd:
+    with open(sys.argv[1]) as csv_fd:
         dog_project_votes = [row for row in csv.reader(csv_fd)]
 
     wg = PairwiseBallotBox([v[0:3] for v in dog_project_votes]).get_matchup_graph()
@@ -83,6 +84,5 @@ if __name__ == "__main__":
         for int_res in intransitivity_resolvers:
             for inc_res in incompleteness_resolvers:
                 # Run 30 times to cut down noise due to stochastic problems
-                multiprocessing.Pool().starmap(
-                    evaluate_vote_induction_method, [(vote_set, int_res, inc_res)] * 30
-                )
+                with multiprocessing.Pool() as p:
+                    p.starmap(evaluate_vote_induction_method, [(vote_set, int_res, inc_res)] * 30)
