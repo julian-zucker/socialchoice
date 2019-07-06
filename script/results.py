@@ -1,12 +1,12 @@
-"""This file computes the values in the "Results" section of the pairwise collapse paper."""
+"""This file computes the values in the "Results" section of the vote induction paper."""
 import csv
 import random
 
 from socialchoice import ranking_similarity
 from socialchoice import RankedChoiceBallotBox
 from socialchoice import Election
-from socialchoice.pairwisecollapse.resolving_intransitivity import *
-from socialchoice.pairwisecollapse.resolving_incompleteness import *
+from socialchoice.induction.resolving_intransitivity import *
+from socialchoice.induction.resolving_incompleteness import *
 
 import multiprocessing
 

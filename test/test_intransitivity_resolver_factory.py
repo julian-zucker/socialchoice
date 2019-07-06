@@ -1,5 +1,5 @@
 from socialchoice import PairwiseBallotBox
-from socialchoice.pairwisecollapse.resolving_intransitivity import IntransitivityResolverFactory
+from socialchoice.induction.resolving_intransitivity import IntransitivityResolverFactory
 
 
 def test_factory_producing_break_random_link():

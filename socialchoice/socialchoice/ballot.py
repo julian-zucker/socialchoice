@@ -4,7 +4,7 @@ import networkx as nx
 from more_itertools import flatten
 
 from socialchoice import util
-from socialchoice.pairwisecollapse.pairwise_collapse import pairwise_collapse
+from socialchoice.induction.vote_induction import vote_induction
 
 
 class BallotBox:
@@ -238,9 +238,7 @@ class PairwiseBallotBox(BallotBox):
         super().enable_ordering_based_methods(intransitivity_resolver, incompleteness_resolver)
         self.ordering_ballot_box = RankedChoiceBallotBox(
             [
-                pairwise_collapse(
-                    [ballot], self.candidates, intransitivity_resolver, incompleteness_resolver
-                )
+                vote_induction([ballot], intransitivity_resolver, incompleteness_resolver)
                 for ballot in self.ballots
             ]
         )

@@ -1,8 +1,8 @@
 import pytest
 
 from socialchoice import *
-from socialchoice.pairwisecollapse.resolving_intransitivity import break_random_link
-from socialchoice.pairwisecollapse.resolving_incompleteness import place_randomly
+from socialchoice.induction.resolving_intransitivity import break_random_link
+from socialchoice.induction.resolving_incompleteness import place_randomly
 
 
 def assert_same_rankings(ballot_box_1: BallotBox, ballot_box_2: BallotBox):
@@ -22,8 +22,8 @@ def assert_same_rankings(ballot_box_1: BallotBox, ballot_box_2: BallotBox):
 def test_intransitive_removed():
     pytest.skip("change API, then fix these")
     """If you have three intransitive votes (a minimal cycle), the result should have two of the three."""
-    result = pairwise_collapse(
-        [(1, 2, "win"), (2, 3, "win"), (3, 1, "win")], {1, 2, 3}, break_random_link, place_randomly
+    result = vote_induction(
+        [(1, 2, "win"), (2, 3, "win"), (3, 1, "win")], break_random_link, place_randomly
     )
 
     # should still keep most of the structure, so we aren't okay with any of the six options
@@ -33,7 +33,5 @@ def test_intransitive_removed():
 def test_incomplete_transitive_votes_filled_in():
     pytest.skip("change API, then fix theserr")
     """This test shows how a missing 1->3 win isn't an issue if you have 1->2 and 2->3"""
-    result = pairwise_collapse(
-        [(1, 2, "win"), (2, 3, "win")], {1, 2, 3}, break_random_link, place_randomly
-    )
+    result = vote_induction([(1, 2, "win"), (2, 3, "win")], break_random_link, place_randomly)
     assert result == [1, 2, 3]

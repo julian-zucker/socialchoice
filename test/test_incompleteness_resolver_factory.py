@@ -1,7 +1,7 @@
 import pytest
 
 from socialchoice import PairwiseBallotBox, nx
-from socialchoice.pairwisecollapse.resolving_incompleteness import IncompletenessResolverFactory
+from socialchoice.induction.resolving_incompleteness import IncompletenessResolverFactory
 
 
 @pytest.fixture

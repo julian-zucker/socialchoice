@@ -8,7 +8,7 @@ This allows us to factor out the package into multiple files while keeping a con
 from socialchoice.ballot import *
 from socialchoice.election import *
 
-import socialchoice.pairwisecollapse as pairwise_collapse
+import socialchoice.induction as pairwise_collapse
 
-from socialchoice.pairwisecollapse.resolving_intransitivity import IntransitivityResolverFactory
-from socialchoice.pairwisecollapse.resolving_incompleteness import IncompletenessResolverFactory
+from socialchoice.induction.resolving_intransitivity import IntransitivityResolverFactory
+from socialchoice.induction.resolving_incompleteness import IncompletenessResolverFactory

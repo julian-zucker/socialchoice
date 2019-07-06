@@ -1,8 +1,8 @@
 import networkx as nx
 import pytest
 
-from socialchoice.pairwisecollapse.resolving_incompleteness import *
-from socialchoice.pairwisecollapse.resolving_incompleteness import _ranking_to_graph
+from socialchoice.induction.resolving_incompleteness import *
+from socialchoice.induction.resolving_incompleteness import _ranking_to_graph
 
 
 @pytest.fixture

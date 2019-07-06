@@ -4,9 +4,7 @@ Collapse pairwise votes into ranked choice votes.
 import networkx as nx
 
 
-def pairwise_collapse(
-    pairwise_votes, candidates, intransitivity_resolver, incompleteness_resolver
-) -> list:
+def vote_induction(pairwise_votes, intransitivity_resolver, incompleteness_resolver) -> list:
     """
     Converts a set of pairwise votes into a ranking over all of the candidates.
 
