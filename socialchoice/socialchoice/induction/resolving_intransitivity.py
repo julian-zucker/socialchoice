@@ -21,7 +21,7 @@ class IntransitivityResolverFactory:
         self.edge_to_win_ratio = {e: wg.get_edge_data(*e)["margin"] for e in wg.edges}
 
     def make_break_random_link(self):
-        return break_random_link
+        return partial(break_random_link)
 
     def make_break_weakest_link(self):
         return make_break_weakest_link(self.edge_to_win_ratio)
@@ -54,7 +54,9 @@ def make_break_weakest_link(edge_to_win_ratio):
     :return: a transitive vote graph
     """
     # Partial function instead of local definition so that result can be pickled
-    return partial(break_weakest_link, edge_to_win_ratio)
+    func = partial(break_weakest_link, edge_to_win_ratio)
+    func.__name__ = "break_weakest_link"
+    return func
 
 
 def break_weakest_link(edge_to_win_ratio, vote_set):
@@ -78,7 +80,9 @@ def break_weakest_link(edge_to_win_ratio, vote_set):
 
 def make_add_edges_in_order(edge_to_win_ratio):
     # Partial function instead of local definition so that result can be pickled
-    return partial(add_edges_in_order, edge_to_win_ratio)
+    func = partial(add_edges_in_order, edge_to_win_ratio)
+    func.__name__ = "add_edges_in_order"
+    return func
 
 
 def add_edges_in_order(edge_to_win_ratio, vote_set):

@@ -23,20 +23,24 @@ class IncompletenessResolverFactory:
         self.edge_to_weight = {e: wg.get_edge_data(*e)["margin"] for e in wg.edges}
 
     def make_place_randomly(self):
-        return partial(place_randomly, candidates=self.candidates)
+        return self._partial_with_name(place_randomly)
 
     def make_add_all_at_beginning(self):
-        return partial(add_all_at_beginning, candidates=self.candidates)
+        return self._partial_with_name(add_all_at_beginning)
 
     def make_add_all_at_end(self):
-        return partial(add_all_at_end, candidates=self.candidates)
+        return self._partial_with_name(add_all_at_end)
 
     def make_add_random_edges(self):
-        return partial(add_random_edges, candidates=self.candidates)
+        return self._partial_with_name(add_random_edges)
 
     def make_add_edges_by_win_ratio(self):
-        add_edges_by_win_ratio = make_add_edges_by_win_ratio(self.edge_to_weight)
-        return partial(add_edges_by_win_ratio, candidates=self.candidates)
+        return make_add_edges_by_win_ratio(self.edge_to_weight, self.candidates)
+
+    def _partial_with_name(self, f):
+        func = partial(f, candidates=self.candidates)
+        func.__name__ = f.__name__
+        return func
 
 
 def place_randomly(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
@@ -94,7 +98,7 @@ def add_random_edges(win_graph: nx.DiGraph, candidates: set) -> nx.DiGraph:
     return win_graph
 
 
-def make_add_edges_by_win_ratio(edges_to_win_ratio):
+def make_add_edges_by_win_ratio(edges_to_win_ratio, candidates):
     """Given a list of edges by win ratio, creates a function that will resolve incompleteness by
     adding non-cycle-creating edges from the list until the graph is complete.
 
@@ -107,7 +111,9 @@ def make_add_edges_by_win_ratio(edges_to_win_ratio):
         edges_to_win_ratio, key=lambda e: edges_to_win_ratio[e], reverse=True
     )
     # Partial function instead of local definition so that result can be pickled
-    return partial(add_edges_by_win_ratio, edges_by_win_ratio)
+    func = partial(add_edges_by_win_ratio, edges_by_win_ratio, candidates=candidates)
+    func.__name__ = "add_edges_by_win_ratio"
+    return func
 
 
 def add_edges_by_win_ratio(

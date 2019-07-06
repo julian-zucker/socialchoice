@@ -43,7 +43,7 @@ def evaluate_vote_induction_method(dataset, intransitivity_resolver, incompleten
     complete_vote_sets = []
 
     for vote_graph in transitive_vote_sets:
-        complete_vote_sets.append(incompleteness_resolver(vote_graph, candidates))
+        complete_vote_sets.append(incompleteness_resolver(vote_graph))
 
     # Create an election using the Ranked ballots
     ranked_choice_ballots = [
@@ -55,34 +55,37 @@ def evaluate_vote_induction_method(dataset, intransitivity_resolver, incompleten
     ranked_choice_ranking = ranking_election.ranking_by_ranked_pairs()
 
     tau = ranking_similarity.kendalls_tau(pairwise_ranking, ranked_choice_ranking)
-    print(f"tau={tau},{intransitivity_resolver.__name__},{incompleteness_resolver.__name__}")
+    print(
+        f"tau={tau},{intransitivity_resolver.func.__name__},{incompleteness_resolver.func.__name__}"
+    )
 
 
 if __name__ == "__main__":
     with open(sys.argv[1]) as csv_fd:
         dog_project_votes = [row for row in csv.reader(csv_fd)]
 
-    wg = PairwiseBallotBox([v[0:3] for v in dog_project_votes]).get_matchup_graph()
-    edge_to_weight = {e: wg.get_edge_data(*e)["margin"] for e in wg.edges}
-    vote_sets = [dog_project_votes]
+    ballots = PairwiseBallotBox([v[0:3] for v in dog_project_votes])
 
+    intransitivity_factory = IntransitivityResolverFactory(ballots)
     intransitivity_resolvers = [
-        break_random_link,
-        make_break_weakest_link(edge_to_weight),
-        make_add_edges_in_order(edge_to_weight),
+        intransitivity_factory.make_break_random_link(),
+        intransitivity_factory.make_break_weakest_link(),
+        intransitivity_factory.make_add_edges_in_order(),
     ]
 
+    incompleteness_factory = IncompletenessResolverFactory(ballots)
     incompleteness_resolvers = [
-        place_randomly,
-        add_random_edges,
-        make_add_edges_by_win_ratio(edge_to_weight),
+        incompleteness_factory.make_place_randomly(),
+        incompleteness_factory.make_add_edges_by_win_ratio(),
+        incompleteness_factory.make_add_random_edges(),
     ]
 
     # The set of inputs to run kendall_tau_distance on is the cartesian product of the above arrays
     inputs = []
-    for vote_set in vote_sets:
-        for int_res in intransitivity_resolvers:
-            for inc_res in incompleteness_resolvers:
-                # Run 30 times to cut down noise due to stochastic problems
-                with multiprocessing.Pool() as p:
-                    p.starmap(evaluate_vote_induction_method, [(vote_set, int_res, inc_res)] * 30)
+    for int_res in intransitivity_resolvers:
+        for inc_res in incompleteness_resolvers:
+            # Run 30 times to reduce noise
+            with multiprocessing.Pool() as p:
+                p.starmap(
+                    evaluate_vote_induction_method, [(dog_project_votes, int_res, inc_res)] * 30
+                )
