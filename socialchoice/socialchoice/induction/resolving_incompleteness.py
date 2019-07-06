@@ -112,7 +112,6 @@ def make_add_edges_by_win_ratio(edges_to_win_ratio, candidates):
     )
     # Partial function instead of local definition so that result can be pickled
     func = partial(add_edges_by_win_ratio, edges_by_win_ratio, candidates=candidates)
-    func.__name__ = "add_edges_by_win_ratio"
     return func
 
 

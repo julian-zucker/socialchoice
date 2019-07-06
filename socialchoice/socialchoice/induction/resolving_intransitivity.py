@@ -55,7 +55,6 @@ def make_break_weakest_link(edge_to_win_ratio):
     """
     # Partial function instead of local definition so that result can be pickled
     func = partial(break_weakest_link, edge_to_win_ratio)
-    func.__name__ = "break_weakest_link"
     return func
 
 
@@ -81,7 +80,6 @@ def break_weakest_link(edge_to_win_ratio, vote_set):
 def make_add_edges_in_order(edge_to_win_ratio):
     # Partial function instead of local definition so that result can be pickled
     func = partial(add_edges_in_order, edge_to_win_ratio)
-    func.__name__ = "add_edges_in_order"
     return func
 
 

@@ -26,12 +26,6 @@ def evaluate_vote_induction_method(dataset, intransitivity_resolver, incompleten
     for vote in dataset:
         voter_to_vote_set[vote[3]].append(vote[0:3])
 
-    # Each voter should have equal weight, so make each vote set the same size
-    for voter in voter_to_vote_set:
-        voter_to_vote_set[voter] = random.choices(voter_to_vote_set[voter], k=num_pairs)
-        # Also update the pairwise dataset to reflect the new votes
-    dataset = [vote for vote_set in voter_to_vote_set.values() for vote in vote_set]
-
     # This is the pairwise election that serves as a baseline "ground truth" for the
     # vote induction method.
     pairwise_election = Election(PairwiseBallotBox([vote[0:3] for vote in dataset]))
