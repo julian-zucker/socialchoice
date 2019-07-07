@@ -2,7 +2,7 @@
 This file parses the output from running results.py into a nice table.
 
 Run from the top level like:
-python3 script/process_results.py data/dog_project_tau.csv
+python3 script/process_results.py data/dog_project_tau.csv > data/dog_project_tau_aggregates.txt
 """
 import csv
 import sys
@@ -12,8 +12,6 @@ import numpy as np
 
 
 def parse_results(results):
-    print(results)
-
     vote_induction_method_to_taus = defaultdict(lambda: [])
 
     for row in results:

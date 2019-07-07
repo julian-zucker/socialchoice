@@ -30,19 +30,13 @@ def evaluate_vote_induction_method(dataset, intransitivity_resolver, incompleten
     # vote induction method.
     pairwise_election = Election(PairwiseBallotBox([vote[0:3] for vote in dataset]))
 
-    transitive_vote_sets = [
-        intransitivity_resolver(vote_set) for vote_set in voter_to_vote_set.values()
-    ]
+    ranked_choice_ballots = []
+    for vote_set in voter_to_vote_set.values():
+        transitive_votes = intransitivity_resolver(vote_set)
+        complete_votes = incompleteness_resolver(transitive_votes)
+        ordering = list(nx.topological_sort(complete_votes))
+        ranked_choice_ballots.append(ordering)
 
-    complete_vote_sets = []
-
-    for vote_graph in transitive_vote_sets:
-        complete_vote_sets.append(incompleteness_resolver(vote_graph))
-
-    # Create an election using the Ranked ballots
-    ranked_choice_ballots = [
-        list(nx.topological_sort(win_graph)) for win_graph in complete_vote_sets
-    ]
     ranking_election = Election(RankedChoiceBallotBox(ranked_choice_ballots))
 
     pairwise_ranking = pairwise_election.ranking_by_ranked_pairs()
