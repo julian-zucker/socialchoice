@@ -7,8 +7,8 @@ from functools import partial
 
 import networkx as nx
 
-from socialchoice import BallotBox, PairwiseBallotBox, util
-from socialchoice.util import candidates_in_ranked_choice_ballot
+from socialchoice import util
+from socialchoice.ballot import BallotBox, PairwiseBallotBox
 
 
 # TODO this file has duplicate code in each of the functions, converting candidates to `to_add`
@@ -139,5 +139,5 @@ def _graph_to_ranking(g: nx.DiGraph) -> list:
 
 def _ranking_to_graph(r: list) -> nx.DiGraph:
     ballots = util.ranking_to_pairwise_ballots(r)
-    candidates = candidates_in_ranked_choice_ballot(r)
+    candidates = util.candidates_in_ranked_choice_ballot(r)
     return PairwiseBallotBox(ballots, candidates).get_victory_graph()

@@ -11,7 +11,7 @@ from functools import partial
 
 import networkx as nx
 
-from socialchoice import BallotBox, PairwiseBallotBox
+from socialchoice.ballot import BallotBox, PairwiseBallotBox
 
 
 class IntransitivityResolverFactory:
