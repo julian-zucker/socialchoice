@@ -11,12 +11,12 @@ First, setup a virtual environment and install a local version of the package.
 virtualenv -p python3.7 venv
 source ./venv/bin/activate
 
-pip3 install -e src/socialchoice/
+pip3 install -e socialchoice
 pip3 install -r requirements.txt
 ```
 Now, modifications made in the source will automatically update in your venv, so you can rerun your tests without worrying about if you remembered to re-install the package or not. Run the tests, just to be sure:
 ```bash
-py.test --doctest-glob=*.md --strict -k "not slow"
+python3 -m pytest --doctest-glob="*.md" --strict -k "not slow"
 ```
 
 ----------------------------------------------------------------------------------------------------

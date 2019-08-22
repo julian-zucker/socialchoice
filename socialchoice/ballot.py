@@ -3,8 +3,8 @@ import warnings
 import networkx as nx
 from more_itertools import flatten
 
-from socialchoice import util
-from socialchoice.induction.vote_induction import vote_induction
+import util
+from induction.vote_induction import vote_induction
 
 
 class BallotBox:
