@@ -5,7 +5,7 @@ with open("../README.md") as readme_fd:
 
 setup(
     name="socialchoice",
-    version="0.0.7",
+    version="0.0.8",
     url="https://github.com/julian-zucker/socialchoice",
     license="Apache 2.0",
     packages=find_packages(),
